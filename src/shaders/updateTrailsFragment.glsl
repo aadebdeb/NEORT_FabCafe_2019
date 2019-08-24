@@ -10,19 +10,17 @@ uniform sampler2D u_positionTexture;
 uniform sampler2D u_velocityTexture;
 uniform sampler2D u_upTexture;
 uniform float u_deltaTime;
-
-const float u_maxSpeed = 20.0;
-const float u_maxForce = 10.0;
-const float u_sepRadius = 10.0;
-const float u_aliRadius = 15.0;
-const float u_cohRadius = 20.0;
-const float u_sepWeight = 5.0;
-const float u_aliWeight = 1.0;
-const float u_cohWeight = 1.0;
-const vec3 u_boundaries = vec3(100.0, 50.0, 100.0);
-
-const float u_boundSepRadius = 30.0;
-const float u_boundSepWeight = 10.0;
+uniform vec3 u_boundaries;
+uniform float u_maxSpeed;
+uniform float u_maxForce;
+uniform float u_sepRadius;
+uniform float u_aliRadius;
+uniform float u_cohRadius;
+uniform float u_sepWeight;
+uniform float u_aliWeight;
+uniform float u_cohWeight;
+uniform float u_boundSepRadius;
+uniform float u_boundSepWeight;
 
 vec3 limit(vec3 v, float max) {
   if (length(v) > max) {
@@ -146,9 +144,6 @@ void main(void) {
         vec3 velocity = texelFetch(u_velocityTexture, coord, 0).xyz;
         vec3 up = texelFetch(u_upTexture, coord, 0).xyz;
         calcNextPosAndVel(coord.x, u_deltaTime, position, velocity, nextPosition, nextVelocity);
-        // nextVelocity = calcNextVelocity(position, velocity);
-        // nextPosition = position + u_deltaTime * velocity;
-        
         vec3 front = normalize(nextVelocity);
         vec3 right = normalize(cross(front, up));
         nextUp = cross(right, front);

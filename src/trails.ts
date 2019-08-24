@@ -1,4 +1,5 @@
 import { Program } from './program';
+import { Vector3 } from './math/vector3';
 import { Matrix4 } from './math/matrix4';
 import { FpsTrigger } from './fpsTrigger';
 import { createVbo, createIbo, createShader, createTexture, setUniformTexture } from './webGlUtils';
@@ -8,8 +9,45 @@ import updateTrailsFragment from '!!raw-loader!./shaders/updateTrailsFragment.gl
 import renderTrailsVertex from '!!raw-loader!./shaders/renderTrailsVertex.glsl';
 import renderTrailsFragment from '!!raw-loader!./shaders/renderTrailsFragment.glsl';
 
+type TrailsConstructorOptions = {
+  trailNum?: number;
+  jointNum?: number;
+  angleSegment?: number;
+  trailRadius?: number;
+  boundaries?: Vector3;
+  maxSpeed?: number;
+  maxForce?: number;
+  sepRadius?: number;
+  aliRadius?: number;
+  cohRadius?: number;
+  sepWeight?: number;
+  aliWeight?: number;
+  cohWeight?: number;
+  boundSepRadius?: number;
+  boundSepWeight?: number;
+};
+
+const updateUniformNames = [
+  'u_positionTexture',
+  'u_velocityTexture',
+  'u_upTexture',
+  'u_deltaTime',
+  'u_boundaries',
+  'u_maxSpeed',
+  'u_maxForce',
+  'u_sepRadius',
+  'u_aliRadius',
+  'u_cohRadius',
+  'u_sepWeight',
+  'u_aliWeight',
+  'u_cohWeight',
+  'u_boundSepRadius',
+  'u_boundSepWeight'
+];
+
 export class Trails {
 
+  readonly trailNum: number;
   private fpsTrigger: FpsTrigger;
   readonly vao: WebGLVertexArrayObject;
   readonly vaoCount: number;
@@ -18,16 +56,55 @@ export class Trails {
   readonly updateProgram: Program;
   readonly renderProgram: Program;
 
-  constructor(gl: WebGL2RenderingContext, readonly trailNum: number, jointNum: number, angleSegment: number) {
+  private boundaries: Vector3;
+  private maxSpeed: number;
+  private maxForce: number;
+  private sepRadius: number;
+  private aliRadius: number;
+  private cohRadius: number;
+  private sepWeight: number;
+  private aliWeight: number;
+  private cohWeight: number;
+  private boundSepRadius: number;
+  private boundSepWeight: number;
+
+  constructor(gl: WebGL2RenderingContext, {
+    trailNum = 50,
+    jointNum = 200,
+    angleSegment = 16,
+    trailRadius = 1.0,
+    boundaries = new Vector3(100.0, 50.0, 100.0),
+    maxSpeed = 20.0,
+    maxForce = 10.0,
+    sepRadius = 10.0,
+    aliRadius = 15.0,
+    cohRadius = 20.0,
+    sepWeight = 5.0,
+    aliWeight = 1.0,
+    cohWeight = 1.0,
+    boundSepRadius = 30.0,
+    boundSepWeight = 10.0,
+  }: TrailsConstructorOptions = {}) {
+    this.trailNum = trailNum;
+    this.boundaries = boundaries;
+    this.maxSpeed = maxSpeed;
+    this.maxForce = maxForce;
+    this.sepRadius = sepRadius;
+    this.aliRadius = aliRadius;
+    this.cohRadius = cohRadius;
+    this.sepWeight = sepWeight;
+    this.aliWeight = aliWeight;
+    this.cohWeight = cohWeight;
+    this.boundSepRadius = boundSepRadius;
+    this.boundSepWeight = boundSepWeight;
     this.fpsTrigger = new FpsTrigger(60.0);
-    [this.vao, this.vaoCount] = createTrailVao(gl, jointNum, angleSegment);
+    [this.vao, this.vaoCount] = createTrailVao(gl, jointNum, angleSegment, trailRadius);
     this.trailsBuffer = new SwappableTrailsBuffer(gl, trailNum, jointNum);
     const fillViewportVertexShader = createShader(gl, fillViewportVertex, gl.VERTEX_SHADER);
     const initializeTrailsFragmentShader = createShader(gl, initializeTrailsFragment, gl.FRAGMENT_SHADER);
     this.initializeProgram = new Program(gl, fillViewportVertexShader, initializeTrailsFragmentShader, []);
     const updateTrailsFragmentShader = createShader(gl, updateTrailsFragment, gl.FRAGMENT_SHADER);
-    this.updateProgram = new Program(gl, fillViewportVertexShader, updateTrailsFragmentShader,
-      ['u_positionTexture', 'u_velocityTexture', 'u_upTexture', 'u_deltaTime']);
+    this.updateProgram = new Program(gl, fillViewportVertexShader, updateTrailsFragmentShader, updateUniformNames);
     const renderTrailsVertexShader = createShader(gl, renderTrailsVertex, gl.VERTEX_SHADER);
     const renderTrailsFragmentShader = createShader(gl, renderTrailsFragment, gl.FRAGMENT_SHADER);
     this.renderProgram = new Program(gl, renderTrailsVertexShader, renderTrailsFragmentShader,
@@ -55,6 +132,17 @@ export class Trails {
     setUniformTexture(gl, 1, this.trailsBuffer.readable.velocityTexture, this.updateProgram.getUniform('u_velocityTexture'));
     setUniformTexture(gl, 2, this.trailsBuffer.readable.upTexture, this.updateProgram.getUniform('u_upTexture'));
     gl.uniform1f(this.updateProgram.getUniform('u_deltaTime'), stepSecs);
+    gl.uniform3fv(this.updateProgram.getUniform('u_boundaries'), this.boundaries.toArray());
+    gl.uniform1f(this.updateProgram.getUniform('u_maxSpeed'), this.maxSpeed);
+    gl.uniform1f(this.updateProgram.getUniform('u_maxForce'), this.maxForce);
+    gl.uniform1f(this.updateProgram.getUniform('u_sepRadius'), this.sepRadius);
+    gl.uniform1f(this.updateProgram.getUniform('u_aliRadius'), this.aliRadius);
+    gl.uniform1f(this.updateProgram.getUniform('u_cohRadius'), this.cohRadius);
+    gl.uniform1f(this.updateProgram.getUniform('u_sepWeight'), this.sepWeight);
+    gl.uniform1f(this.updateProgram.getUniform('u_aliWeight'), this.aliWeight);
+    gl.uniform1f(this.updateProgram.getUniform('u_cohWeight'), this.cohWeight);
+    gl.uniform1f(this.updateProgram.getUniform('u_boundSepRadius'), this.boundSepRadius);
+    gl.uniform1f(this.updateProgram.getUniform('u_boundSepWeight'), this.boundSepWeight);
     gl.drawArrays(gl.TRIANGLES, 0, 6);
     this.trailsBuffer.swap();
   }
@@ -128,8 +216,8 @@ class TrailsBuffer {
   }
 }
 
-function createTrailVao(gl: WebGL2RenderingContext, jointNum: number, angleSegment: number): [WebGLVertexArrayObject, number] {
-  const mesh = createTrailMesh(jointNum, angleSegment);
+function createTrailVao(gl: WebGL2RenderingContext, jointNum: number, angleSegment: number, maxRadius: number): [WebGLVertexArrayObject, number] {
+  const mesh = createTrailMesh(jointNum, angleSegment, maxRadius);
   const positionVbo = createVbo(gl, mesh.positions);
   const normalVbo = createVbo(gl, mesh.normals);
   const jointVbo = createVbo(gl, mesh.joints);
@@ -190,10 +278,7 @@ function smoothstep(edge0: number, edge1: number, x: number): number {
   return t * t * (3.0 - 2.0 * t);
 }
 
-function createTrailMesh(jointNum: number, angleSegment: number): TrailMeshReturns {
-
-  const maxRadius = 3.0;
-
+function createTrailMesh(jointNum: number, angleSegment: number, maxRadius: number): TrailMeshReturns {
   const vertexNum = 2 + (jointNum - 2) * angleSegment;
   const indexNum = 3 * (2 * angleSegment + 2 * angleSegment * (jointNum - 3));
 

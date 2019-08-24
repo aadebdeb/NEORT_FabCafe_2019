@@ -1,5 +1,4 @@
 import Stats from 'stats.js';
-
 import { Camera } from './camera';
 import { CanvasRenderTarget } from './canvasRenderTarget';
 import { GBuffer } from './gBuffer';
@@ -11,6 +10,7 @@ import { CopyFilter } from './filters/copyFilter';
 import { Walls } from './walls';
 import { Trails } from './trails';
 import { Timer } from './timer';
+import { Vector3 } from './math/vector3';
 
 const canvas = document.createElement('canvas');
 canvas.width = innerWidth;
@@ -33,8 +33,16 @@ const ldrBuffer = new SwappableLdrColorBuffer(gl, canvas.width, canvas.height);
 const tonemappingFilter = new TonemappingFilter(gl);
 const copyFilter = new CopyFilter(gl);
 
-const walls = new Walls(gl);
-const trails = new Trails(gl, 500, 300, 16);
+const wallSize = new Vector3(100.0, 50.0, 100.0);
+
+const walls = new Walls(gl, wallSize);
+const trails = new Trails(gl, {
+  trailNum: 1000,
+  jointNum: 100,
+  angleSegment: 16,
+  trailRadius: 0.5,
+  boundaries: wallSize,
+});
 
 gl.clearColor(0.5, 0.3, 0.2, 1.0);
 const loop = () => {

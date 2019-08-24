@@ -14,8 +14,7 @@ uniform mat4 u_cameraMatrix;
 uniform mat4 u_viewMatrix;
 uniform float u_near;
 uniform float u_far;
-
-const vec3 u_wallSize = vec3(100.0, 50.0, 100.0);
+uniform vec3 u_wallSize;
 
 struct GBuffer {
     vec3 albedo;
