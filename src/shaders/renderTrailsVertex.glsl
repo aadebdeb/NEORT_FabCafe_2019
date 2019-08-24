@@ -7,7 +7,7 @@ layout (location = 1) in vec3 i_normal;
 layout (location = 2) in int i_joint;
 
 out vec3 v_normal;
-// out vec3 v_worldPos;
+out vec3 v_worldPos;
 
 uniform sampler2D u_positionTexture;
 uniform sampler2D u_velocityTexture;
@@ -40,16 +40,9 @@ void main(void) {
         0.0, 0.0, 1.0, 0.0,
         jointPosition.x, jointPosition.y, jointPosition.z, 1.0
     ) * lookMat;
-    //     mat4 modelMatrix =  mat4(
-    //     1.0, 0.0, 0.0, 0.0,
-    //     0.0, 1.0, 0.0, 0.0,
-    //     0.0, 0.0, 1.0, 0.0,
-    //     0.0, 0.0, 0.0, 1.0
-    // );
 
     mat4 mvpMatrix = u_vpMatrix * modelMatrix;
-    // v_worldPos = (modelMatrix * vec4(i_position, 1.0)).xyz;
-    // v_normal = i_normal;
+    v_worldPos = (modelMatrix * vec4(i_position, 1.0)).xyz;
     v_normal = (lookMat * vec4(i_normal, 0.0)).xyz;
     gl_Position = mvpMatrix * vec4(i_position, 1.0);
 }

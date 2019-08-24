@@ -19,7 +19,7 @@ const float u_cohRadius = 20.0;
 const float u_sepWeight = 5.0;
 const float u_aliWeight = 1.0;
 const float u_cohWeight = 1.0;
-const vec3 u_boundaries = vec3(100.0, 100.0, 100.0);
+const vec3 u_boundaries = vec3(100.0, 50.0, 100.0);
 
 const float u_boundSepRadius = 30.0;
 const float u_boundSepWeight = 10.0;
