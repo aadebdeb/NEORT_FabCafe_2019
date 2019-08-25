@@ -53,11 +53,11 @@ vec3 calcTopEmission(vec3 position) {
     if (abs(position.x) < 30.0 && abs(position.z) < 30.0) {
         return vec3(2.0);
     }
-    return vec3(0.05);
+    return vec3(0.2);
 }
 
 vec3 calcBottomEmission() {
-    return vec3(0.03);
+    return vec3(0.01);
 }
 
 bool hitWalls(vec3 ro, vec3 rd, vec3 wallSize) {

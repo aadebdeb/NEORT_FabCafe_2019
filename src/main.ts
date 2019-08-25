@@ -6,6 +6,7 @@ import { DeferredLighting } from './deferredLighting';
 import { SwappableHdrRenderTarget } from './swappableHdrRenderTarget';
 import { SwappableLdrRenderTarget } from './swappableLdrRenderTarget';
 import { BloomFilter } from './filters/bloomFilter';
+import { FogFilter } from './filters/fogFilter';
 import { TonemappingFilter } from './filters/tonemappingFilter';
 import { CopyFilter } from './filters/copyFilter';
 import { Walls } from './walls';
@@ -35,10 +36,16 @@ const bloomFilter = new BloomFilter(gl, canvas.width, canvas.height, {
   threshold: 0.5,
   intensity: 0.01,
 });
+const fogFilter = new FogFilter(gl, {intensity: 0.005});
 const tonemappingFilter = new TonemappingFilter(gl);
 const copyFilter = new CopyFilter(gl);
 
-const wallSize = new Vector3(200.0, 50.0, 200.0);
+const hdrFilters = [
+  fogFilter,
+  bloomFilter
+];
+
+const wallSize = new Vector3(100.0, 50.0, 100.0);
 
 const walls = new Walls(gl, wallSize);
 const trails = new Trails(gl, {
@@ -75,8 +82,10 @@ const loop = () => {
     camera: camera,
   };
 
-  bloomFilter.apply(gl, hdrBuffer, hdrBuffer, filterOptions);
-  hdrBuffer.swap();
+  hdrFilters.forEach((filter) => {
+    filter.apply(gl, hdrBuffer, hdrBuffer, filterOptions);
+    hdrBuffer.swap();
+  });
 
   tonemappingFilter.apply(gl, hdrBuffer, ldrBuffer, filterOptions);
   ldrBuffer.swap();
