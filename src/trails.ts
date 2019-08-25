@@ -25,6 +25,9 @@ type TrailsConstructorOptions = {
   cohWeight?: number;
   boundSepRadius?: number;
   boundSepWeight?: number;
+  albedo?: Vector3;
+  reflectance?: Vector3;
+  refIntensity?: number;
 };
 
 const updateUniformNames = [
@@ -42,8 +45,18 @@ const updateUniformNames = [
   'u_aliWeight',
   'u_cohWeight',
   'u_boundSepRadius',
-  'u_boundSepWeight'
+  'u_boundSepWeight',
 ];
+
+const renderUniformNames = {
+  positionTexture: 'u_positionTexture',
+  velocityTexture: 'u_velocityTexture',
+  upTexture: 'u_upTexture',
+  vpMatrix: 'u_vpMatrix',
+  albedo: 'u_albedo',
+  reflectance: 'u_reflectance',
+  refIntensity: 'u_refIntensity',
+};
 
 export class Trails {
 
@@ -67,6 +80,9 @@ export class Trails {
   private cohWeight: number;
   private boundSepRadius: number;
   private boundSepWeight: number;
+  private albedo: Vector3;
+  private reflectance: Vector3;
+  private refIntensity: number;
 
   constructor(gl: WebGL2RenderingContext, {
     trailNum = 50,
@@ -84,6 +100,9 @@ export class Trails {
     cohWeight = 1.0,
     boundSepRadius = 10.0,
     boundSepWeight = 10.0,
+    albedo = new Vector3(0.5, 0.5, 0.5),
+    reflectance = new Vector3(0.2, 0.2, 0.2),
+    refIntensity = 1.0,
   }: TrailsConstructorOptions = {}) {
     this.trailNum = trailNum;
     this.boundaries = boundaries;
@@ -97,6 +116,9 @@ export class Trails {
     this.cohWeight = cohWeight;
     this.boundSepRadius = boundSepRadius;
     this.boundSepWeight = boundSepWeight;
+    this.albedo = albedo;
+    this.reflectance = reflectance;
+    this.refIntensity = refIntensity;
     this.fpsTrigger = new FpsTrigger(60.0);
     [this.vao, this.vaoCount] = createTrailVao(gl, jointNum, angleSegment, trailRadius);
     this.trailsBuffer = new SwappableTrailsBuffer(gl, trailNum, jointNum);
@@ -107,8 +129,7 @@ export class Trails {
     this.updateProgram = new Program(gl, fillViewportVertexShader, updateTrailsFragmentShader, updateUniformNames);
     const renderTrailsVertexShader = createShader(gl, renderTrailsVertex, gl.VERTEX_SHADER);
     const renderTrailsFragmentShader = createShader(gl, renderTrailsFragment, gl.FRAGMENT_SHADER);
-    this.renderProgram = new Program(gl, renderTrailsVertexShader, renderTrailsFragmentShader,
-      ['u_positionTexture', 'u_velocityTexture', 'u_upTexture', 'u_vpMatrix']);
+    this.renderProgram = new Program(gl, renderTrailsVertexShader, renderTrailsFragmentShader, Object.values(renderUniformNames));
     this.initialize(gl);
   }
 
@@ -149,10 +170,13 @@ export class Trails {
 
   render(gl: WebGL2RenderingContext, vpMatrix: Matrix4): void {
     gl.useProgram(this.renderProgram.program);
-    setUniformTexture(gl, 0, this.trailsBuffer.readable.positionTexture, this.renderProgram.getUniform('u_positionTexture'));
-    setUniformTexture(gl, 1, this.trailsBuffer.readable.velocityTexture, this.renderProgram.getUniform('u_velocityTexture'));
-    setUniformTexture(gl, 2, this.trailsBuffer.readable.upTexture, this.renderProgram.getUniform('u_upTexture'));
-    gl.uniformMatrix4fv(this.renderProgram.getUniform('u_vpMatrix'), false, vpMatrix.elements);
+    setUniformTexture(gl, 0, this.trailsBuffer.readable.positionTexture, this.renderProgram.getUniform(renderUniformNames.positionTexture));
+    setUniformTexture(gl, 1, this.trailsBuffer.readable.velocityTexture, this.renderProgram.getUniform(renderUniformNames.velocityTexture));
+    setUniformTexture(gl, 2, this.trailsBuffer.readable.upTexture, this.renderProgram.getUniform(renderUniformNames.upTexture));
+    gl.uniformMatrix4fv(this.renderProgram.getUniform(renderUniformNames.vpMatrix), false, vpMatrix.elements);
+    gl.uniform3fv(this.renderProgram.getUniform(renderUniformNames.albedo), this.albedo.toArray());
+    gl.uniform3fv(this.renderProgram.getUniform(renderUniformNames.reflectance), this.reflectance.toArray());
+    gl.uniform1f(this.renderProgram.getUniform(renderUniformNames.refIntensity), this.refIntensity);
     gl.bindVertexArray(this.vao);
     gl.drawElementsInstanced(gl.TRIANGLES, this.vaoCount, gl.UNSIGNED_SHORT, 0, this.trailNum);
     gl.bindVertexArray(null);

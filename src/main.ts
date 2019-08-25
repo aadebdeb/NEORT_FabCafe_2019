@@ -59,6 +59,9 @@ const trails = new Trails(gl, {
   angleSegment: 16,
   trailRadius: 0.5,
   boundaries: wallSize,
+  albedo: new Vector3(0.01, 0.01, 0.01),
+  reflectance: new Vector3(0.2, 0.2, 0.2),
+  refIntensity: 1.0
 });
 
 gl.clearColor(0.5, 0.3, 0.2, 1.0);

@@ -10,6 +10,10 @@ layout (location = 1) out vec4 o_gBuffer1; // xyz: reflectance, w: reflect inten
 layout (location = 2) out vec3 o_gBuffer2; // xyz: world position
 layout (location = 3) out vec3 o_gBuffer3; // xyz: world normal
 
+uniform vec3 u_albedo;
+uniform vec3 u_reflectance;
+uniform float u_refIntensity;
+
 struct GBuffer {
     vec3 albedo;
     int type; // 0: surrounding walls, 1: top wall, 2: reflectance objects
@@ -29,10 +33,10 @@ void main(void) {
     vec3 normal = normalize(v_normal);
 
     GBuffer gBuffer;
-    gBuffer.albedo = vec3(0.01);
+    gBuffer.albedo = u_albedo;
     gBuffer.type = 2;
-    gBuffer.reflectance = vec3(0.2);
-    gBuffer.refIntensity = 0.1;
+    gBuffer.reflectance = u_reflectance;
+    gBuffer.refIntensity = u_refIntensity;
     gBuffer.worldPosition = v_worldPos;
     gBuffer.worldNormal = normal;
     setGBuffer(gBuffer);
