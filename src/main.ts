@@ -30,8 +30,8 @@ const camera = new Camera(canvas.width / canvas.height, 60.0, 0.1, 1000.0);
 const canvasRenderTarget = new CanvasRenderTarget(canvas);
 const gBuffer = new GBuffer(gl, canvas.width, canvas.height);
 const deferredRendering = new DeferredLighting(gl);
-const hdrBuffer = new SwappableHdrRenderTarget(gl, canvas.width, canvas.height);
-const ldrBuffer = new SwappableLdrRenderTarget(gl, canvas.width, canvas.height);
+const hdrRenderTarget = new SwappableHdrRenderTarget(gl, canvas.width, canvas.height);
+const ldrRenderTarget = new SwappableLdrRenderTarget(gl, canvas.width, canvas.height);
 const bloomFilter = new BloomFilter(gl, canvas.width, canvas.height, {
   threshold: 0.5,
   intensity: 0.01,
@@ -72,10 +72,10 @@ const loop = () => {
   walls.render(gl, camera, timer.getElapsedSecs());
 
   gl.disable(gl.DEPTH_TEST);
-  gl.bindFramebuffer(gl.FRAMEBUFFER, hdrBuffer.framebuffer);
-  gl.viewport(0.0, 0.0, hdrBuffer.width, hdrBuffer.height);
+  gl.bindFramebuffer(gl.FRAMEBUFFER, hdrRenderTarget.framebuffer);
+  gl.viewport(0.0, 0.0, hdrRenderTarget.width, hdrRenderTarget.height);
   deferredRendering.apply(gl, gBuffer, camera);
-  hdrBuffer.swap();
+  hdrRenderTarget.swap();
 
   const filterOptions = {
     gBuffer: gBuffer,
@@ -83,14 +83,14 @@ const loop = () => {
   };
 
   hdrFilters.forEach((filter) => {
-    filter.apply(gl, hdrBuffer, hdrBuffer, filterOptions);
-    hdrBuffer.swap();
+    filter.apply(gl, hdrRenderTarget, hdrRenderTarget, filterOptions);
+    hdrRenderTarget.swap();
   });
 
-  tonemappingFilter.apply(gl, hdrBuffer, ldrBuffer, filterOptions);
-  ldrBuffer.swap();
+  tonemappingFilter.apply(gl, hdrRenderTarget, ldrRenderTarget, filterOptions);
+  ldrRenderTarget.swap();
 
-  copyFilter.apply(gl, ldrBuffer, canvasRenderTarget, filterOptions);
+  copyFilter.apply(gl, ldrRenderTarget, canvasRenderTarget, filterOptions);
 
   stats.end();
   requestAnimationFrame(loop);
