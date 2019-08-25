@@ -50,7 +50,7 @@ const ldrFilters = [
   fxaaFilter
 ];
 
-const wallSize = new Vector3(100.0, 50.0, 100.0);
+const wallSize = new Vector3(75.0, 50.0, 75.0);
 
 const walls = new Walls(gl, wallSize);
 const trails = new Trails(gl, {
@@ -60,8 +60,8 @@ const trails = new Trails(gl, {
   trailRadius: 0.5,
   boundaries: wallSize,
   albedo: new Vector3(0.01, 0.01, 0.01),
-  reflectance: new Vector3(0.2, 0.2, 0.2),
-  refIntensity: 1.0
+  reflectance: new Vector3(0.0, 0.0, 0.0),
+  refIntensity: 0.5
 });
 
 gl.clearColor(0.5, 0.3, 0.2, 1.0);
@@ -82,7 +82,7 @@ const loop = () => {
   gl.disable(gl.DEPTH_TEST);
   gl.bindFramebuffer(gl.FRAMEBUFFER, hdrRenderTarget.framebuffer);
   gl.viewport(0.0, 0.0, hdrRenderTarget.width, hdrRenderTarget.height);
-  deferredRendering.apply(gl, gBuffer, camera, timer.getElapsedSecs());
+  deferredRendering.apply(gl, gBuffer, camera, wallSize, timer.getElapsedSecs());
   hdrRenderTarget.swap();
 
   const filterOptions = {

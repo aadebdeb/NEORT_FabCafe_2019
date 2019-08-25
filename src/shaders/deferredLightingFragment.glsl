@@ -12,7 +12,7 @@ uniform sampler2D u_gBufferTexture3; // xyz: world normal
 uniform vec3 u_cameraPos;
 uniform float u_time;
 
-const vec3 u_walls = vec3(100.0, 100.0, 100.0);
+uniform vec3 u_wallSize;
 
 struct GBuffer {
     vec3 albedo;
@@ -115,16 +115,6 @@ vec3 hitWalls(vec3 ro, vec3 rd, vec3 wallSize) {
     return vec3(0.0);
 }
 
-vec3 ceilColor(vec3 ro, vec3 rd) {
-    float t = (50.0 - ro.y) / rd.y;
-    if (t < 0.0) return vec3(0.0);
-    vec3 p = ro + t * rd;
-    if (abs(p.x) < 30.0 && abs(p.z) < 30.0) {
-        return vec3(2.0);
-    }
-    return vec3(0.0);
-}
-
 void main(void) {
     GBuffer gBuffer = getGBuffer();
 
@@ -137,17 +127,11 @@ void main(void) {
         vec3 viewDir = normalize(u_cameraPos - gBuffer.worldPosition);
         vec3 refDir = reflect(-viewDir, gBuffer.worldNormal);
         float dotNV = clamp(dot(gBuffer.worldNormal, refDir), 0.0, 1.0);
-        vec3 fresnel = schlickFresnel(vec3(0.0), dotNV);
-        emission = 0.5 * fresnel * hitWalls(gBuffer.worldPosition + 0.01 * refDir, refDir, u_walls);
+        vec3 fresnel = schlickFresnel(gBuffer.reflectance, dotNV);
+        emission = gBuffer.refIntensity * fresnel * hitWalls(gBuffer.worldPosition + 0.01 * refDir, refDir, u_wallSize);
     }
 
     vec3 diffuse = gBuffer.albedo * (dot(vec3(0.0, 1.0, 0.0), gBuffer.worldNormal) * 0.5 + 0.5);
-
-    vec3 viewDir = normalize(u_cameraPos - gBuffer.worldPosition);
-    vec3 refDir = reflect(-viewDir, gBuffer.worldNormal);
-    float dotNV = clamp(dot(gBuffer.worldNormal, refDir), 0.0, 1.0);
-    vec3 fresnel = schlickFresnel(vec3(0.0), dotNV);
-
     vec3 c = diffuse + emission;
 
     o_color = vec4(c, 1.0);
