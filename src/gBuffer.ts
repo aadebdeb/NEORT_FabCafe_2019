@@ -44,22 +44,64 @@ function createFramebuffer(
 }
 
 export class GBuffer {
-  readonly colorTexture0: WebGLTexture; // xyz: albedo, w: object type
-  readonly colorTexture1: WebGLTexture; // xyz: reflectance, w: reflect intensity
-  readonly colorTexture2: WebGLTexture; // xyz: world position
-  readonly colorTexture3: WebGLTexture; // xyz: world normal
-  readonly depthTexture: WebGLTexture;
-  readonly framebuffer: WebGLFramebuffer;
 
-  constructor(gl: WebGL2RenderingContext, readonly width: number, readonly height: number) {
-    this.colorTexture0 = createColorTexture(gl, width, height);
-    this.colorTexture1 = createColorTexture(gl, width, height);
-    this.colorTexture2 = createColorTexture(gl, width, height);
-    this.colorTexture3 = createColorTexture(gl, width, height);
-    this.depthTexture = createDepthTexture(gl, width, height);
-    this.framebuffer = createFramebuffer(
-      gl, this.colorTexture0, this.colorTexture1, this.colorTexture2,
-      this.colorTexture3, this.depthTexture);
+  private _colorTexture0?: WebGLTexture; // xyz: albedo, w: object type
+  private _colorTexture1?: WebGLTexture; // xyz: reflectance, w: reflect intensity
+  private _colorTexture2?: WebGLTexture; // xyz: world position
+  private _colorTexture3?: WebGLTexture; // xyz: world normal
+  private _depthTexture?: WebGLTexture;
+  private _framebuffer?: WebGLFramebuffer;
+
+  constructor(gl: WebGL2RenderingContext, private _width: number, private _height: number) {
+    this.createFramebuffer(gl);
   }
 
+  get width(): number {
+    return this._width;
+  }
+
+  get height(): number {
+    return this._height;
+  }
+
+  get colorTexture0(): WebGLTexture {
+    return <WebGLTexture>this._colorTexture0;
+  }
+
+  get colorTexture1(): WebGLTexture {
+    return <WebGLTexture>this._colorTexture1;
+  }
+
+  get colorTexture2(): WebGLTexture {
+    return <WebGLTexture>this._colorTexture2;
+  }
+
+  get colorTexture3(): WebGLTexture {
+    return <WebGLTexture>this._colorTexture3;
+  }
+
+  get depthTexture(): WebGLTexture {
+    return <WebGLTexture>this._depthTexture;
+  }
+
+  get framebuffer(): WebGLFramebuffer {
+    return <WebGLFramebuffer>this._framebuffer;
+  }
+
+  resize(gl: WebGL2RenderingContext, width: number, height: number): void {
+    this._width = width;
+    this._height = height;
+    this.createFramebuffer(gl);
+  }
+
+  private createFramebuffer(gl: WebGL2RenderingContext) {
+    this._colorTexture0 = createColorTexture(gl, this._width, this._height);
+    this._colorTexture1 = createColorTexture(gl, this._width, this._height);
+    this._colorTexture2 = createColorTexture(gl, this._width, this._height);
+    this._colorTexture3 = createColorTexture(gl, this._width, this._height);
+    this._depthTexture = createDepthTexture(gl, this._width, this._height);
+    this._framebuffer = createFramebuffer(
+      gl, this._colorTexture0, this._colorTexture1, this._colorTexture2,
+      this._colorTexture3, this._depthTexture);
+  }
 }

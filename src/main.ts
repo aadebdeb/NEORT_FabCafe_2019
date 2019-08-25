@@ -26,9 +26,9 @@ const stats = new Stats();
 document.body.appendChild(stats.dom);
 
 const timer = new Timer();
-const camera = new Camera(canvas.width / canvas.height, 60.0, 0.1, 1000.0);
+let camera = new Camera(canvas.width / canvas.height, 60.0, 0.1, 1000.0);
 
-const canvasRenderTarget = new CanvasRenderTarget(canvas);
+const canvasRenderTarget = new CanvasRenderTarget(canvas.width, canvas.height);
 const gBuffer = new GBuffer(gl, canvas.width, canvas.height);
 const deferredRendering = new DeferredLighting(gl);
 const hdrRenderTarget = new SwappableHdrRenderTarget(gl, canvas.width, canvas.height);
@@ -65,6 +65,8 @@ const trails = new Trails(gl, {
 });
 
 gl.clearColor(0.5, 0.3, 0.2, 1.0);
+
+let requestId: number | null = null;
 const loop = () => {
   stats.begin();
 
@@ -106,14 +108,25 @@ const loop = () => {
   copyFilter.apply(gl, ldrRenderTarget, canvasRenderTarget, filterOptions);
 
   stats.end();
-  requestAnimationFrame(loop);
+  requestId = requestAnimationFrame(loop);
 }
 
 
 addEventListener('resize', () => {
+  if (requestId !== null) {
+    cancelAnimationFrame(requestId);
+    requestId = null;
+  }
   canvas.width = innerWidth;
   canvas.height = innerHeight;
+  camera = new Camera(canvas.width / canvas.height, 60.0, 0.1, 1000.0);
+  gBuffer.resize(gl, canvas.width, canvas.height);
+  canvasRenderTarget.resize(gl, canvas.width, canvas.height);
+  hdrRenderTarget.resize(gl, canvas.width, canvas.height);
+  ldrRenderTarget.resize(gl, canvas.width, canvas.height);
+  bloomFilter.resize(gl, canvas.width, canvas.height);
+  requestId = requestAnimationFrame(loop);
 });
 
 timer.start();
-loop();
+requestId = requestAnimationFrame(loop);

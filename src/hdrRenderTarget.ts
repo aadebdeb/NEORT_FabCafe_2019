@@ -16,11 +16,37 @@ function createHdrColorTexture(gl: WebGL2RenderingContext, width: number, height
 }
 
 export class HdrRenderTarget implements RenderTarget {
-  readonly texture: WebGLTexture;
-  readonly framebuffer: WebGLFramebuffer;
+  private _texture?: WebGLTexture;
+  private _framebuffer?: WebGLFramebuffer;
 
-  constructor(gl: WebGL2RenderingContext, readonly width: number, readonly height: number) {
-    this.texture = createHdrColorTexture(gl, width, height);
-    this.framebuffer = createSingleColorFramebuffer(gl, this.texture);
+  constructor(gl: WebGL2RenderingContext, private _width: number, private _height: number) {
+    this.createFramebuffer(gl);
+  }
+
+  get width(): number {
+    return this._width;
+  }
+
+  get height(): number {
+    return this._height;
+  }
+
+  get texture(): WebGLTexture {
+    return <WebGLTexture>this._texture;
+  }
+
+  get framebuffer(): WebGLFramebuffer {
+    return <WebGLFramebuffer>this._framebuffer;
+  }
+
+  resize(gl: WebGL2RenderingContext, width: number, height: number): void {
+    this._width = width;
+    this._height = height;
+    this.createFramebuffer(gl);
+  }
+
+  private createFramebuffer(gl: WebGL2RenderingContext): void {
+    this._texture = createHdrColorTexture(gl, this._width, this._height);
+    this._framebuffer = createSingleColorFramebuffer(gl, this.texture);
   }
 }

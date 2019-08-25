@@ -53,6 +53,18 @@ export class BloomFilter implements Filter {
     this.blurBuffer3 = new HdrRenderTarget(gl, width / 32.0, height / 32.0);
   }
 
+  resize(gl: WebGL2RenderingContext, width: number, height: number): void {
+    this.blurFilter0 = new BlurFilter(gl, width / 4.0, height / 4.0);
+    this.blurFilter1 = new BlurFilter(gl, width / 8.0, height / 8.0);
+    this.blurFilter2 = new BlurFilter(gl, width / 16.0, height / 16.0);
+    this.blurFilter3 = new BlurFilter(gl, width / 32.0, height / 32.0);
+    this.luminanceBuffer = new HdrRenderTarget(gl, width, height);
+    this.blurBuffer0 = new HdrRenderTarget(gl, width / 4.0, height / 4.0);
+    this.blurBuffer1 = new HdrRenderTarget(gl, width / 8.0, height / 8.0);
+    this.blurBuffer2 = new HdrRenderTarget(gl, width / 16.0, height / 16.0);
+    this.blurBuffer3 = new HdrRenderTarget(gl, width / 32.0, height / 32.0);
+  }
+
   apply(gl: WebGL2RenderingContext, src: RenderTarget, dst: RenderTarget, options: FilterOptions): void {
     this.extractLuminance(gl, src);
     this.applyBlur(gl, options);
