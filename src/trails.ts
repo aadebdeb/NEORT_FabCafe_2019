@@ -82,7 +82,7 @@ export class Trails {
     sepWeight = 5.0,
     aliWeight = 1.0,
     cohWeight = 1.0,
-    boundSepRadius = 30.0,
+    boundSepRadius = 10.0,
     boundSepWeight = 10.0,
   }: TrailsConstructorOptions = {}) {
     this.trailNum = trailNum;

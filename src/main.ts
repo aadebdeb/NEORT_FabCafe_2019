@@ -33,7 +33,7 @@ const ldrBuffer = new SwappableLdrColorBuffer(gl, canvas.width, canvas.height);
 const tonemappingFilter = new TonemappingFilter(gl);
 const copyFilter = new CopyFilter(gl);
 
-const wallSize = new Vector3(100.0, 50.0, 100.0);
+const wallSize = new Vector3(200.0, 50.0, 200.0);
 
 const walls = new Walls(gl, wallSize);
 const trails = new Trails(gl, {
@@ -57,12 +57,12 @@ const loop = () => {
   gl.viewport(0.0, 0.0, gBuffer.width, gBuffer.height);
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
   trails.render(gl, camera.vpMatrix);
-  walls.render(gl, camera);
+  walls.render(gl, camera, timer.getElapsedSecs());
 
   gl.disable(gl.DEPTH_TEST);
   gl.bindFramebuffer(gl.FRAMEBUFFER, hdrBuffer.framebuffer);
   gl.viewport(0.0, 0.0, hdrBuffer.width, hdrBuffer.height);
-  deferredRendering.apply(gl, gBuffer);
+  deferredRendering.apply(gl, gBuffer, camera);
   hdrBuffer.swap();
 
   const filterOptions = {

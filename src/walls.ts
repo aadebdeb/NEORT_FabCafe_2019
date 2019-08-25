@@ -12,10 +12,10 @@ export class Walls {
     const renderWallsVertexShader = createShader(gl, renderWallsVertex, gl.VERTEX_SHADER);
     const renderWallsFragmentShader = createShader(gl, renderWallsFragment, gl.FRAGMENT_SHADER);
     this.program = new Program(gl, renderWallsVertexShader, renderWallsFragmentShader, 
-      ['u_cameraMatrix', 'u_viewMatrix', 'u_focalScale', 'u_near', 'u_far', 'u_wallSize']);
+      ['u_cameraMatrix', 'u_viewMatrix', 'u_focalScale', 'u_near', 'u_far', 'u_wallSize', 'u_time']);
   }
 
-  render(gl: WebGL2RenderingContext, camera: Camera): void {
+  render(gl: WebGL2RenderingContext, camera: Camera, time: number): void {
     gl.useProgram(this.program.program);
     gl.uniformMatrix4fv(this.program.getUniform('u_cameraMatrix'), false, camera.cameraMatrix.elements);
     gl.uniformMatrix4fv(this.program.getUniform('u_viewMatrix'), false, camera.viewMatrix.elements);
@@ -24,6 +24,7 @@ export class Walls {
     gl.uniform1f(this.program.getUniform('u_near'), camera.near);
     gl.uniform1f(this.program.getUniform('u_far'), camera.far);
     gl.uniform3fv(this.program.getUniform('u_wallSize'), this.size.toArray());
+    gl.uniform1f(this.program.getUniform('u_time'), time);
     gl.drawArrays(gl.TRIANGLES, 0, 6);
   }
 }
