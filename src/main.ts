@@ -59,7 +59,7 @@ const trails = new Trails(gl, {
   angleSegment: 16,
   trailRadius: 0.5,
   boundaries: wallSize,
-  albedo: new Vector3(0.01, 0.01, 0.01),
+  albedo: new Vector3(0.001, 0.001, 0.001),
   reflectance: new Vector3(0.0, 0.0, 0.0),
   refIntensity: 0.5
 });
