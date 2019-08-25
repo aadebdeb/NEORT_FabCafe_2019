@@ -5,21 +5,36 @@ precision highp float;
 in vec2 v_uv;
 out vec4 o_color;
 
-uniform sampler2D u_gBufferTexture0;
-uniform sampler2D u_gBufferTexture2;
-uniform sampler2D u_gBufferTexture3;
-uniform sampler2D u_gBufferTexture4;
+uniform sampler2D u_gBufferTexture0; // xyz: albedo, w: object type
+uniform sampler2D u_gBufferTexture1; // xyz: reflectance, w: reflect intensity
+uniform sampler2D u_gBufferTexture2; // xyz: world position
+uniform sampler2D u_gBufferTexture3; // xyz: world normal
 uniform vec3 u_cameraPos;
-// uniform vec3 u_walls;
 uniform float u_time;
 
 const vec3 u_walls = vec3(100.0, 100.0, 100.0);
 
-#define getAlbedo(uv) texture(u_gBufferTexture0, uv).xyz
-#define getType(uv) texture(u_gBufferTexture0, uv).w
-#define getWorldPosition(uv) texture(u_gBufferTexture2, uv).xyz
-#define getWorldNormal(uv) texture(u_gBufferTexture3, uv).xyz
-#define getEmission(uv) texture(u_gBufferTexture4, uv).xyz
+struct GBuffer {
+    vec3 albedo;
+    int type; // 0: surrounding walls, 1: top wall, 2: reflectance objects
+    vec3 reflectance;
+    float refIntensity;
+    vec3 worldPosition;
+    vec3 worldNormal;
+};
+
+GBuffer getGBuffer() {
+    GBuffer gBuffer;
+    vec4 tex0 = texture(u_gBufferTexture0, v_uv);
+    vec4 tex1 = texture(u_gBufferTexture1, v_uv);
+    gBuffer.albedo = tex0.xyz;
+    gBuffer.type = int(tex0.w);
+    gBuffer.reflectance = tex1.xyz;
+    gBuffer.refIntensity = tex1.w;
+    gBuffer.worldPosition = texture(u_gBufferTexture2, v_uv).xyz;
+    gBuffer.worldNormal = texture(u_gBufferTexture3, v_uv).xyz;
+    return gBuffer;
+}
 
 vec3 palette(float t, vec3 a, vec3 b, vec3 c, vec3 d) {
     return a + b * cos(6.28318530718 * (t * c + d));
@@ -111,37 +126,29 @@ vec3 ceilColor(vec3 ro, vec3 rd) {
 }
 
 void main(void) {
-    vec3 albedo = getAlbedo(v_uv);
-    int type = int(getType(v_uv));
-    vec3 worldPosition = getWorldPosition(v_uv);
-    vec3 worldNormal = getWorldNormal(v_uv);
-    vec3 emission = getEmission(v_uv);
+    GBuffer gBuffer = getGBuffer();
 
-    if (type == 0) {
-        emission = calcWallEmission(worldPosition);
-    } else if (type == 1) {
-        emission = calcCeilEmission(worldPosition);
+    vec3 emission;
+    if (gBuffer.type == 0) {
+        emission = calcWallEmission(gBuffer.worldPosition);
+    } else if (gBuffer.type == 1) {
+        emission = calcCeilEmission(gBuffer.worldPosition);
     } else {
-        vec3 viewDir = normalize(u_cameraPos - worldPosition);
-        vec3 refDir = reflect(-viewDir, worldNormal);
-        float dotNV = clamp(dot(worldNormal, refDir), 0.0, 1.0);
+        vec3 viewDir = normalize(u_cameraPos - gBuffer.worldPosition);
+        vec3 refDir = reflect(-viewDir, gBuffer.worldNormal);
+        float dotNV = clamp(dot(gBuffer.worldNormal, refDir), 0.0, 1.0);
         vec3 fresnel = schlickFresnel(vec3(0.0), dotNV);
-        emission = 0.5 * fresnel * hitWalls(worldPosition + 0.01 * refDir, refDir, u_walls);
-        // emission = vec3(1.0, 0.0, 0.0);
+        emission = 0.5 * fresnel * hitWalls(gBuffer.worldPosition + 0.01 * refDir, refDir, u_walls);
     }
 
-    vec3 diffuse = albedo * (dot(vec3(0.0, 1.0, 0.0), worldNormal) * 0.5 + 0.5);
+    vec3 diffuse = gBuffer.albedo * (dot(vec3(0.0, 1.0, 0.0), gBuffer.worldNormal) * 0.5 + 0.5);
 
-    vec3 viewDir = normalize(u_cameraPos - worldPosition);
-    vec3 refDir = reflect(-viewDir, worldNormal);
-    float dotNV = clamp(dot(worldNormal, refDir), 0.0, 1.0);
+    vec3 viewDir = normalize(u_cameraPos - gBuffer.worldPosition);
+    vec3 refDir = reflect(-viewDir, gBuffer.worldNormal);
+    float dotNV = clamp(dot(gBuffer.worldNormal, refDir), 0.0, 1.0);
     vec3 fresnel = schlickFresnel(vec3(0.0), dotNV);
 
     vec3 c = diffuse + emission;
-
-    // if (albedo != vec3(0.0)) {
-    //     c += 1.0 * ceilColor(worldPosition, refDir) * fresnel;
-    // }
 
     o_color = vec4(c, 1.0);
 }

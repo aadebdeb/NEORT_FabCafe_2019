@@ -4,11 +4,10 @@ precision highp float;
 
 in vec3 v_dir;
 
-layout (location = 0) out vec4 o_gBuffer0; // xyz: albedo
-layout (location = 1) out vec4 o_gBuffer1;
+layout (location = 0) out vec4 o_gBuffer0; // xyz: albedo, w: object type
+layout (location = 1) out vec4 o_gBuffer1; // xyz: reflectance, w: reflectIntensity
 layout (location = 2) out vec3 o_gBuffer2; // xyz: world position
 layout (location = 3) out vec3 o_gBuffer3; // xyz: world normal
-layout (location = 4) out vec3 o_gBuffer4; // xyz: emission
 
 uniform mat4 u_cameraMatrix;
 uniform mat4 u_viewMatrix;
@@ -19,20 +18,18 @@ uniform float u_time;
 
 struct GBuffer {
     vec3 albedo;
-    float type; // 0~1: wall emission, 1~2: ceil, 2~3: reflection
+    int type; // 0: surrounding walls, 1: top wall, 2: reflectance objects
     vec3 reflectance;
     float refIntensity;
     vec3 worldPosition;
     vec3 worldNormal;
-    vec3 emission;
 };
 
 void setGBuffer(GBuffer gBuffer) {
-    o_gBuffer0 = vec4(gBuffer.albedo, gBuffer.type + 0.5);
+    o_gBuffer0 = vec4(gBuffer.albedo, float(gBuffer.type) + 0.5);
     o_gBuffer1 = vec4(gBuffer.reflectance, gBuffer.refIntensity);
     o_gBuffer2 = gBuffer.worldPosition;
     o_gBuffer3 = gBuffer.worldNormal;
-    o_gBuffer4 = gBuffer.emission;
 }
 
 vec3 palette(float t, vec3 a, vec3 b, vec3 c, vec3 d) {
@@ -63,71 +60,59 @@ vec3 calcBottomEmission() {
 
 bool hitWalls(vec3 ro, vec3 rd, vec3 wallSize) {
     float t = 1e6;
-    float type;
-    int wallType = 0; // 0: right, left, front, near, 1: top, 2: bottom
+    int type;
     vec3 position, normal;
-    float refIntensity = 0.0;
     float tb = (-wallSize.y - ro.y) / rd.y;
     if (tb > 0.0 && tb < t) {
         t = tb;
-        type = 2.0;
-        wallType = 2;
+        type = 2;
         position = ro + t * rd;
         normal = vec3(0.0, 1.0, 0.0);
-        refIntensity = 0.5;
     }
     float tt = (wallSize.y - ro.y) / rd.y;
     if (tt > 0.0 && tt < t) {
         t = tt;
-        type = 1.0;
-        wallType = 1;
+        type = 1;
         position = ro + t * rd;
         normal = vec3(0.0, -1.0, 0.0);
     }
     float tl = (-wallSize.x - ro.x) / rd.x;
     if (tl > 0.0 && tl < t) {
         t = tl;
-        type = 0.0;
-        wallType = 0;
+        type = 0;
         position = ro + t * rd;
         normal = vec3(1.0, 0.0, 0.0);
     }
     float tr = (wallSize.x - ro.x) / rd.x;
     if (tr > 0.0 && tr < t) {
         t = tr;
-        type = 0.0;
-        wallType = 0;
+        type = 0;
         position = ro + t * rd;
         normal = vec3(-1.0, 0.0, 0.0);
     }
     float tf = (-wallSize.z - ro.z) / rd.z;
     if (tf > 0.0 && tf < t) {
         t = tf;
-        type = 0.0;
-        wallType = 0;
+        type = 0;
         position = ro + t * rd;
         normal = vec3(0.0, 0.0, 1.0);
     }
     float tn = (wallSize.z - ro.z) / rd.z;
     if (tn > 0.0 && tn < t) {
         t = tn;
-        type = 0.0;
-        wallType = 0;
+        type = 0;
         position = ro + t * rd;
         normal = vec3(0.0, 0.0, -1.0);
     }
 
     if (t < 1e6) {
-        vec3 emission = wallType == 1 ? calcTopEmission(position) :
-            wallType == 2 ? calcBottomEmission() : calcPeripheralEmission(position);
         GBuffer gBuffer;
         gBuffer.albedo = vec3(0.0);
         gBuffer.type = type;
-        gBuffer.reflectance = vec3(1.0);
-        gBuffer.refIntensity = refIntensity;
+        gBuffer.reflectance = vec3(0.2);
+        gBuffer.refIntensity = 0.5;
         gBuffer.worldPosition = position;
         gBuffer.worldNormal = normal;
-        gBuffer.emission = emission;
         setGBuffer(gBuffer);
         gl_FragDepth = 0.5 + 0.5 * ((u_far + u_near) / (u_far - u_near) + (-2.0 * u_far * u_near) / ((u_far - u_near) * t));
         return true;
