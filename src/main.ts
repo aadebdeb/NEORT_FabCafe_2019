@@ -8,6 +8,7 @@ import { SwappableLdrRenderTarget } from './swappableLdrRenderTarget';
 import { BloomFilter } from './filters/bloomFilter';
 import { FogFilter } from './filters/fogFilter';
 import { TonemappingFilter } from './filters/tonemappingFilter';
+import { FxaaFilter } from './filters/fxaaFilter';
 import { CopyFilter } from './filters/copyFilter';
 import { Walls } from './walls';
 import { Trails } from './trails';
@@ -38,11 +39,15 @@ const bloomFilter = new BloomFilter(gl, canvas.width, canvas.height, {
 });
 const fogFilter = new FogFilter(gl, {intensity: 0.005});
 const tonemappingFilter = new TonemappingFilter(gl);
+const fxaaFilter = new FxaaFilter(gl);
 const copyFilter = new CopyFilter(gl);
 
 const hdrFilters = [
   fogFilter,
   bloomFilter
+];
+const ldrFilters = [
+  fxaaFilter
 ];
 
 const wallSize = new Vector3(100.0, 50.0, 100.0);
@@ -89,6 +94,11 @@ const loop = () => {
 
   tonemappingFilter.apply(gl, hdrRenderTarget, ldrRenderTarget, filterOptions);
   ldrRenderTarget.swap();
+
+  ldrFilters.forEach((filter) => {
+    filter.apply(gl, ldrRenderTarget, ldrRenderTarget, filterOptions);
+    ldrRenderTarget.swap();
+  });
 
   copyFilter.apply(gl, ldrRenderTarget, canvasRenderTarget, filterOptions);
 
