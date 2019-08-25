@@ -30,6 +30,10 @@ type TrailsConstructorOptions = {
   refIntensity?: number;
 };
 
+const initializeUniformNames = {
+  boundaries: 'u_boundaries',
+};
+
 const updateUniformNames = [
   'u_positionTexture',
   'u_velocityTexture',
@@ -124,7 +128,7 @@ export class Trails {
     this.trailsBuffer = new SwappableTrailsBuffer(gl, trailNum, jointNum);
     const fillViewportVertexShader = createShader(gl, fillViewportVertex, gl.VERTEX_SHADER);
     const initializeTrailsFragmentShader = createShader(gl, initializeTrailsFragment, gl.FRAGMENT_SHADER);
-    this.initializeProgram = new Program(gl, fillViewportVertexShader, initializeTrailsFragmentShader, []);
+    this.initializeProgram = new Program(gl, fillViewportVertexShader, initializeTrailsFragmentShader, Object.values(initializeUniformNames));
     const updateTrailsFragmentShader = createShader(gl, updateTrailsFragment, gl.FRAGMENT_SHADER);
     this.updateProgram = new Program(gl, fillViewportVertexShader, updateTrailsFragmentShader, updateUniformNames);
     const renderTrailsVertexShader = createShader(gl, renderTrailsVertex, gl.VERTEX_SHADER);
@@ -137,6 +141,7 @@ export class Trails {
     gl.bindFramebuffer(gl.FRAMEBUFFER, this.trailsBuffer.writable.framebuffer);
     gl.viewport(0.0, 0.0, this.trailsBuffer.width, this.trailsBuffer.height);
     gl.useProgram(this.initializeProgram.program);
+    gl.uniform3fv(this.initializeProgram.getUniform(initializeUniformNames.boundaries), this.boundaries.toArray());
     gl.drawArrays(gl.TRIANGLES, 0, 6);
     this.trailsBuffer.swap();
   }
