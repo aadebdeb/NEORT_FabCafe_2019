@@ -28,6 +28,7 @@ type TrailsConstructorOptions = {
   albedo?: Vector3;
   reflectance?: Vector3;
   refIntensity?: number;
+  startSecs?: number;
 };
 
 const initializeUniformNames = {
@@ -107,6 +108,7 @@ export class Trails {
     albedo = new Vector3(0.5, 0.5, 0.5),
     reflectance = new Vector3(0.2, 0.2, 0.2),
     refIntensity = 1.0,
+    startSecs = 1.0,
   }: TrailsConstructorOptions = {}) {
     this.trailNum = trailNum;
     this.boundaries = boundaries;
@@ -135,6 +137,7 @@ export class Trails {
     const renderTrailsFragmentShader = createShader(gl, renderTrailsFragment, gl.FRAGMENT_SHADER);
     this.renderProgram = new Program(gl, renderTrailsVertexShader, renderTrailsFragmentShader, Object.values(renderUniformNames));
     this.initialize(gl);
+    this.update(gl, startSecs);
   }
 
   initialize(gl: WebGL2RenderingContext): void {
