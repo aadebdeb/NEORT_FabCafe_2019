@@ -79,7 +79,7 @@ const loop = () => {
   gl.disable(gl.DEPTH_TEST);
   gl.bindFramebuffer(gl.FRAMEBUFFER, hdrRenderTarget.framebuffer);
   gl.viewport(0.0, 0.0, hdrRenderTarget.width, hdrRenderTarget.height);
-  deferredRendering.apply(gl, gBuffer, camera);
+  deferredRendering.apply(gl, gBuffer, camera, timer.getElapsedSecs());
   hdrRenderTarget.swap();
 
   const filterOptions = {

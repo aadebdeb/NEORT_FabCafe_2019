@@ -10,7 +10,7 @@ export class Camera {
   readonly vpMatrix: Matrix4;
 
   constructor(readonly aspect: number, readonly vfov: number, readonly near: number, readonly far: number) {
-    this.cameraPosition = new Vector3(80.0, 0.0, 80.0);
+    this.cameraPosition = new Vector3(80.0, -30.0, 80.0);
     this.cameraMatrix = Matrix4.lookAt(
       this.cameraPosition,
       new Vector3(0.0, 0.0, 0.0),

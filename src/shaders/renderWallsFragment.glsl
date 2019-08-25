@@ -4,7 +4,7 @@ precision highp float;
 
 in vec3 v_dir;
 
-layout (location = 0) out vec3 o_gBuffer0; // xyz: albedo
+layout (location = 0) out vec4 o_gBuffer0; // xyz: albedo
 layout (location = 1) out vec4 o_gBuffer1;
 layout (location = 2) out vec3 o_gBuffer2; // xyz: world position
 layout (location = 3) out vec3 o_gBuffer3; // xyz: world normal
@@ -19,6 +19,7 @@ uniform float u_time;
 
 struct GBuffer {
     vec3 albedo;
+    float type; // 0~1: wall emission, 1~2: ceil, 2~3: reflection
     vec3 reflectance;
     float refIntensity;
     vec3 worldPosition;
@@ -27,7 +28,7 @@ struct GBuffer {
 };
 
 void setGBuffer(GBuffer gBuffer) {
-    o_gBuffer0 = gBuffer.albedo;
+    o_gBuffer0 = vec4(gBuffer.albedo, gBuffer.type + 0.5);
     o_gBuffer1 = vec4(gBuffer.reflectance, gBuffer.refIntensity);
     o_gBuffer2 = gBuffer.worldPosition;
     o_gBuffer3 = gBuffer.worldNormal;
@@ -62,12 +63,14 @@ vec3 calcBottomEmission() {
 
 bool hitWalls(vec3 ro, vec3 rd, vec3 wallSize) {
     float t = 1e6;
+    float type;
     int wallType = 0; // 0: right, left, front, near, 1: top, 2: bottom
     vec3 position, normal;
     float refIntensity = 0.0;
     float tb = (-wallSize.y - ro.y) / rd.y;
     if (tb > 0.0 && tb < t) {
         t = tb;
+        type = 2.0;
         wallType = 2;
         position = ro + t * rd;
         normal = vec3(0.0, 1.0, 0.0);
@@ -76,6 +79,7 @@ bool hitWalls(vec3 ro, vec3 rd, vec3 wallSize) {
     float tt = (wallSize.y - ro.y) / rd.y;
     if (tt > 0.0 && tt < t) {
         t = tt;
+        type = 1.0;
         wallType = 1;
         position = ro + t * rd;
         normal = vec3(0.0, -1.0, 0.0);
@@ -83,6 +87,7 @@ bool hitWalls(vec3 ro, vec3 rd, vec3 wallSize) {
     float tl = (-wallSize.x - ro.x) / rd.x;
     if (tl > 0.0 && tl < t) {
         t = tl;
+        type = 0.0;
         wallType = 0;
         position = ro + t * rd;
         normal = vec3(1.0, 0.0, 0.0);
@@ -90,6 +95,7 @@ bool hitWalls(vec3 ro, vec3 rd, vec3 wallSize) {
     float tr = (wallSize.x - ro.x) / rd.x;
     if (tr > 0.0 && tr < t) {
         t = tr;
+        type = 0.0;
         wallType = 0;
         position = ro + t * rd;
         normal = vec3(-1.0, 0.0, 0.0);
@@ -97,6 +103,7 @@ bool hitWalls(vec3 ro, vec3 rd, vec3 wallSize) {
     float tf = (-wallSize.z - ro.z) / rd.z;
     if (tf > 0.0 && tf < t) {
         t = tf;
+        type = 0.0;
         wallType = 0;
         position = ro + t * rd;
         normal = vec3(0.0, 0.0, 1.0);
@@ -104,6 +111,7 @@ bool hitWalls(vec3 ro, vec3 rd, vec3 wallSize) {
     float tn = (wallSize.z - ro.z) / rd.z;
     if (tn > 0.0 && tn < t) {
         t = tn;
+        type = 0.0;
         wallType = 0;
         position = ro + t * rd;
         normal = vec3(0.0, 0.0, -1.0);
@@ -114,6 +122,7 @@ bool hitWalls(vec3 ro, vec3 rd, vec3 wallSize) {
             wallType == 2 ? calcBottomEmission() : calcPeripheralEmission(position);
         GBuffer gBuffer;
         gBuffer.albedo = vec3(0.0);
+        gBuffer.type = type;
         gBuffer.reflectance = vec3(1.0);
         gBuffer.refIntensity = refIntensity;
         gBuffer.worldPosition = position;

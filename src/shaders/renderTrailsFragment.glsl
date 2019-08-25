@@ -5,7 +5,7 @@ precision highp float;
 in vec3 v_worldPos;
 in vec3 v_normal;
 
-layout (location = 0) out vec3 o_gBuffer0; // xyz: albedo
+layout (location = 0) out vec4 o_gBuffer0; // xyz: albedo
 layout (location = 1) out vec4 o_gBuffer1;
 layout (location = 2) out vec3 o_gBuffer2; // xyz: world position
 layout (location = 3) out vec3 o_gBuffer3; // xyz: world normal
@@ -13,6 +13,7 @@ layout (location = 4) out vec3 o_gBuffer4; // xyz: emission
 
 struct GBuffer {
     vec3 albedo;
+    float type; // 0~1: wall emission, 1~2: ceil, 2~3: reflection
     vec3 reflectance;
     float refIntensity;
     vec3 worldPosition;
@@ -21,7 +22,7 @@ struct GBuffer {
 };
 
 void setGBuffer(GBuffer gBuffer) {
-    o_gBuffer0 = gBuffer.albedo;
+    o_gBuffer0 = vec4(gBuffer.albedo, gBuffer.type + 0.5);
     o_gBuffer1 = vec4(gBuffer.reflectance, gBuffer.refIntensity);
     o_gBuffer2 = gBuffer.worldPosition;
     o_gBuffer3 = gBuffer.worldNormal;
@@ -33,6 +34,7 @@ void main(void) {
 
     GBuffer gBuffer;
     gBuffer.albedo = vec3(0.01);
+    gBuffer.type = 2.0;
     gBuffer.reflectance = vec3(0.2);
     gBuffer.refIntensity = 0.1;
     gBuffer.worldPosition = v_worldPos;
