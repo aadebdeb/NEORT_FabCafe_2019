@@ -5,6 +5,7 @@ import { GBuffer } from './gBuffer';
 import { DeferredLighting } from './deferredLighting';
 import { SwappableHdrRenderTarget } from './swappableHdrRenderTarget';
 import { SwappableLdrRenderTarget } from './swappableLdrRenderTarget';
+import { BloomFilter } from './filters/bloomFilter';
 import { TonemappingFilter } from './filters/tonemappingFilter';
 import { CopyFilter } from './filters/copyFilter';
 import { Walls } from './walls';
@@ -30,6 +31,10 @@ const gBuffer = new GBuffer(gl, canvas.width, canvas.height);
 const deferredRendering = new DeferredLighting(gl);
 const hdrBuffer = new SwappableHdrRenderTarget(gl, canvas.width, canvas.height);
 const ldrBuffer = new SwappableLdrRenderTarget(gl, canvas.width, canvas.height);
+const bloomFilter = new BloomFilter(gl, canvas.width, canvas.height, {
+  threshold: 0.5,
+  intensity: 0.01,
+});
 const tonemappingFilter = new TonemappingFilter(gl);
 const copyFilter = new CopyFilter(gl);
 
@@ -69,6 +74,9 @@ const loop = () => {
     gBuffer: gBuffer,
     camera: camera,
   };
+
+  bloomFilter.apply(gl, hdrBuffer, hdrBuffer, filterOptions);
+  hdrBuffer.swap();
 
   tonemappingFilter.apply(gl, hdrBuffer, ldrBuffer, filterOptions);
   ldrBuffer.swap();
