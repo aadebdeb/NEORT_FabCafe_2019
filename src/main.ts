@@ -41,8 +41,8 @@ const deferredRendering = new DeferredLighting(gl);
 const hdrRenderTarget = new SwappableHdrRenderTarget(gl, canvas.width, canvas.height);
 const ldrRenderTarget = new SwappableLdrRenderTarget(gl, canvas.width, canvas.height);
 const bloomFilter = new BloomFilter(gl, canvas.width, canvas.height, {
-  threshold: 0.5,
-  intensity: 0.01,
+  threshold: 0.2,
+  intensity: 0.015,
 });
 const fogFilter = new FogFilter(gl, {intensity: 0.005});
 const tonemappingFilter = new TonemappingFilter(gl);

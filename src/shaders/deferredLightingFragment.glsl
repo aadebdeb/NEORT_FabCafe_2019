@@ -11,8 +11,9 @@ uniform sampler2D u_gBufferTexture2; // xyz: world position
 uniform sampler2D u_gBufferTexture3; // xyz: world normal
 uniform vec3 u_cameraPos;
 uniform float u_time;
-
 uniform vec3 u_wallSize;
+
+#define INV_PI 0.31830988618
 
 struct GBuffer {
     vec3 albedo;
@@ -36,6 +37,14 @@ GBuffer getGBuffer() {
     return gBuffer;
 }
 
+float random(float x){
+    return fract(sin(x * 12.9898) * 43758.5453);
+}
+
+float srandom(float x) {
+    return 2.0 * random(x) - 1.0;
+}
+
 vec3 palette(float t, vec3 a, vec3 b, vec3 c, vec3 d) {
     return a + b * cos(6.28318530718 * (t * c + d));
 }
@@ -44,15 +53,47 @@ vec3 schlickFresnel(vec3 f90, float cosine) {
     return f90 + (1.0 - f90) * pow(1.0 - cosine, 5.0);
 }
 
-vec3 calcWallEmission(vec3 pos) {
-    pos *= 0.01;
-    for (float i = 0.0; i < 3.0; i += 1.0) {
-        float l = length(pos);
-        pos.x = 1.5 * sin(0.43 * pos.y + 0.4 * l + 0.2 * u_time);
-        pos.y = 2.0 * sin(0.12 * pos.z + 1.3 * l + 0.35 * u_time);
-        pos.z = 3.1 * sin(0.85 * pos.x + 5.2 * l + 0.15 * u_time);
+mat2 rotate(float r) {
+    float c = cos(r);
+    float s = sin(r);
+    return mat2(c, s, -s, c);
+}
+
+vec3 calcWallEmission1(vec3 pos) {
+    for (float i = 1.0; i < 5.0; i++) {
+        pos.y += i * 2.0 * sin(0.014 * pos.x - 0.03 * i * u_time);
+        pos.y += i * 2.0 * sin(-0.009 * pos.z + 0.13 * i * u_time);
+        // pos.y += 5.0 * sin(0.1 * pos.y);
+        pos.xz *= 2.0;
+        pos.xy *= rotate(0.17 * srandom(i));
+        pos.yz *= rotate(0.14 * srandom(i * 1.01));
     }
-    return palette(length(pos), vec3(0.5), vec3(0.5), vec3(1.0), vec3(0.0, 0.05, 0.12));
+    // vec3 c = mix(vec3(0.8, 0.3, 0.4), vec3(0.2, 0.7, 0.8), sin(0.14 * pos.y) * 0.5 + 0.5);
+    pos.y *= 2.0;
+    vec3 c = palette(
+        -0.1 * u_time + 0.005 * floor(pos.y * INV_PI) + 0.1 * random(floor(pos.y * INV_PI)),
+        vec3(0.5), vec3(0.5), vec3(1.0), vec3(0.0, 0.28, 0.3));
+    return mix(vec3(0.0), 1.2 * c, pow(abs(sin(1.0 * pos.y)), 0.2));
+
+    //return c * vec3(1.0) * pow(abs(sin(1.0 * pos.y)), 0.5);
+}
+
+vec3 calcWallEmission(vec3 pos) {
+    float t = mod(u_time, 20.0);
+    if (t < 10.0) {
+        return calcWallEmission1(pos);
+    } else {
+        return vec3(0.0);
+    }
+
+    // pos *= 0.01;
+    // for (float i = 0.0; i < 3.0; i += 1.0) {
+    //     float l = length(pos);
+    //     pos.x = 1.5 * sin(0.43 * pos.y + 0.4 * l + 0.2 * u_time);
+    //     pos.y = 2.0 * sin(0.12 * pos.z + 1.3 * l + 0.35 * u_time);
+    //     pos.z = 3.1 * sin(0.85 * pos.x + 5.2 * l + 0.15 * u_time);
+    // }
+    // return palette(length(pos), vec3(0.5), vec3(0.5), vec3(1.0), vec3(0.0, 0.05, 0.12));
 }
 
 vec3 calcCeilEmission(vec3 position) {
