@@ -1,6 +1,10 @@
 export class Vector3 {
   public constructor(public x: number, public y: number, public z: number) {}
 
+  static get zero(): Vector3 {
+    return new Vector3(0.0, 0.0, 0.0);
+  }
+
   public sqMag(): number {
     return this.x * this.x + this.y * this.y + this.z * this.z;
   }
@@ -51,6 +55,10 @@ export class Vector3 {
     this.y /= v.y;
     this.z /= v.z;
     return this;
+  }
+
+  clone(): Vector3 {
+    return new Vector3(this.x, this.y, this.z);
   }
 
   toArray(): [number, number, number] {

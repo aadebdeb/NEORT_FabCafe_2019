@@ -30,7 +30,7 @@ export class DeferredLighting {
     setUniformTexture(gl, 1, gBuffer.colorTexture1, this.program.getUniform(uniformNames.gBufferTexture1));
     setUniformTexture(gl, 2, gBuffer.colorTexture2, this.program.getUniform(uniformNames.gBufferTexture2));
     setUniformTexture(gl, 3, gBuffer.colorTexture3, this.program.getUniform(uniformNames.gBufferTexture3));
-    gl.uniform3fv(this.program.getUniform(uniformNames.cameraPos), camera.cameraPosition.toArray());
+    gl.uniform3fv(this.program.getUniform(uniformNames.cameraPos), camera.position.toArray());
     gl.uniform3fv(this.program.getUniform(uniformNames.wallSize), wallSize.toArray());
     gl.uniform1f(this.program.getUniform(uniformNames.time), elapsedSecs);
     gl.drawArrays(gl.TRIANGLES, 0, 6);

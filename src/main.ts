@@ -26,7 +26,14 @@ const stats = new Stats();
 document.body.appendChild(stats.dom);
 
 const timer = new Timer();
-let camera = new Camera(canvas.width / canvas.height, 60.0, 0.1, 1000.0);
+let camera = new Camera({
+  aspect: canvas.width / canvas.height,
+  vfov: 60.0,
+  near: 0.1,
+  far: 300.0,
+  origin: new Vector3(70.0, -30.0, 70.0),
+  target: Vector3.zero
+});
 
 const canvasRenderTarget = new CanvasRenderTarget(canvas.width, canvas.height);
 const gBuffer = new GBuffer(gl, canvas.width, canvas.height);
@@ -119,7 +126,7 @@ addEventListener('resize', () => {
   }
   canvas.width = innerWidth;
   canvas.height = innerHeight;
-  camera = new Camera(canvas.width / canvas.height, 60.0, 0.1, 1000.0);
+  camera.aspect = canvas.width / canvas.height;
   gBuffer.resize(gl, canvas.width, canvas.height);
   canvasRenderTarget.resize(gl, canvas.width, canvas.height);
   hdrRenderTarget.resize(gl, canvas.width, canvas.height);

@@ -17,7 +17,7 @@ export class Walls {
 
   render(gl: WebGL2RenderingContext, camera: Camera, time: number): void {
     gl.useProgram(this.program.program);
-    gl.uniformMatrix4fv(this.program.getUniform('u_cameraMatrix'), false, camera.cameraMatrix.elements);
+    gl.uniformMatrix4fv(this.program.getUniform('u_cameraMatrix'), false, camera.matrix.elements);
     gl.uniformMatrix4fv(this.program.getUniform('u_viewMatrix'), false, camera.viewMatrix.elements);
     const focalScaleY = Math.tan(0.5 * camera.vfov * Math.PI / 180.0);
     gl.uniform2f(this.program.getUniform('u_focalScale'), camera.aspect * focalScaleY, focalScaleY);
