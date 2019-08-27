@@ -19,7 +19,7 @@ uniform float u_time;
 
 struct GBuffer {
     vec3 albedo;
-    int type; // 0: surrounding walls, 1: top wall, 2: reflectance objects
+    int type; // 0: bottom, 1: top, 2: left, 3: right, 4: far, 5: near, 6: trails
     vec3 reflectance;
     float refIntensity;
     vec3 worldPosition;
@@ -162,7 +162,7 @@ void main(void) {
     GBuffer gBuffer = getGBuffer();
 
     vec3 emission;
-    if (gBuffer.type == 0) {
+    if (gBuffer.type == 2 || gBuffer.type == 3 || gBuffer.type == 4 || gBuffer.type == 5) {
         emission = calcWallEmission(gBuffer.worldPosition);
     } else if (gBuffer.type == 1) {
         emission = calcCeilEmission(gBuffer.worldPosition);

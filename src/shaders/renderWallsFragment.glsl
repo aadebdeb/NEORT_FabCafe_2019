@@ -18,7 +18,7 @@ uniform float u_time;
 
 struct GBuffer {
     vec3 albedo;
-    int type; // 0: surrounding walls, 1: top wall, 2: reflectance objects
+    int type; // 0: bottom, 1: top, 2: left, 3: right, 4: far, 5: near, 6: trails
     vec3 reflectance;
     float refIntensity;
     vec3 worldPosition;
@@ -65,7 +65,7 @@ bool hitWalls(vec3 ro, vec3 rd, vec3 wallSize) {
     float tb = (-wallSize.y - ro.y) / rd.y;
     if (tb > 0.0 && tb < t) {
         t = tb;
-        type = 2;
+        type = 0;
         position = ro + t * rd;
         normal = vec3(0.0, 1.0, 0.0);
     }
@@ -79,28 +79,28 @@ bool hitWalls(vec3 ro, vec3 rd, vec3 wallSize) {
     float tl = (-wallSize.x - ro.x) / rd.x;
     if (tl > 0.0 && tl < t) {
         t = tl;
-        type = 0;
+        type = 2;
         position = ro + t * rd;
         normal = vec3(1.0, 0.0, 0.0);
     }
     float tr = (wallSize.x - ro.x) / rd.x;
     if (tr > 0.0 && tr < t) {
         t = tr;
-        type = 0;
+        type = 3;
         position = ro + t * rd;
         normal = vec3(-1.0, 0.0, 0.0);
     }
     float tf = (-wallSize.z - ro.z) / rd.z;
     if (tf > 0.0 && tf < t) {
         t = tf;
-        type = 0;
+        type = 4;
         position = ro + t * rd;
         normal = vec3(0.0, 0.0, 1.0);
     }
     float tn = (wallSize.z - ro.z) / rd.z;
     if (tn > 0.0 && tn < t) {
         t = tn;
-        type = 0;
+        type = 5;
         position = ro + t * rd;
         normal = vec3(0.0, 0.0, -1.0);
     }
