@@ -10,8 +10,10 @@ uniform sampler2D u_gBufferTexture1; // xyz: reflectance, w: reflect intensity
 uniform sampler2D u_gBufferTexture2; // xyz: world position
 uniform sampler2D u_gBufferTexture3; // xyz: world normal
 uniform vec3 u_cameraPos;
-uniform float u_time;
 uniform vec3 u_wallSize;
+uniform float u_lightSize;
+uniform vec3 u_lightColor;
+uniform float u_time;
 
 #define INV_PI 0.31830988618
 
@@ -97,8 +99,8 @@ vec3 calcWallEmission(vec3 pos) {
 }
 
 vec3 calcCeilEmission(vec3 position) {
-    if (abs(position.x) < 20.0 && abs(position.z) < 20.0) {
-        return vec3(3.0);
+    if (abs(position.x) < u_lightSize && abs(position.z) < u_lightSize) {
+        return u_lightColor;
     }
     return vec3(0.0);
 }

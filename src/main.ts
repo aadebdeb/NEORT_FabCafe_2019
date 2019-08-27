@@ -37,7 +37,10 @@ let camera = new Camera({
 
 const canvasRenderTarget = new CanvasRenderTarget(canvas.width, canvas.height);
 const gBuffer = new GBuffer(gl, canvas.width, canvas.height);
-const deferredRendering = new DeferredLighting(gl);
+const deferredRendering = new DeferredLighting(gl, {
+  lightSize: 20.0,
+  lightColor: new Vector3(3.0, 3.0, 3.0),
+});
 const hdrRenderTarget = new SwappableHdrRenderTarget(gl, canvas.width, canvas.height);
 const ldrRenderTarget = new SwappableLdrRenderTarget(gl, canvas.width, canvas.height);
 const bloomFilter = new BloomFilter(gl, canvas.width, canvas.height, {
