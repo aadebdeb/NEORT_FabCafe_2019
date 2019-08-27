@@ -174,7 +174,7 @@ void main(void) {
         emission = gBuffer.refIntensity * fresnel * hitWalls(gBuffer.worldPosition + 0.01 * refDir, refDir, u_wallSize);
     }
 
-    vec3 diffuse = gBuffer.albedo * (dot(vec3(0.0, 1.0, 0.0), gBuffer.worldNormal) * 0.5 + 0.5);
+    vec3 diffuse = gBuffer.albedo * min((dot(vec3(0.0, 1.0, 0.0), gBuffer.worldNormal) * 0.5 + 0.5), 1.0);
     vec3 c = diffuse + emission;
 
     o_color = vec4(c, 1.0);

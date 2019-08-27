@@ -6,6 +6,7 @@ import { DeferredLighting } from './deferredLighting';
 import { SwappableHdrRenderTarget } from './swappableHdrRenderTarget';
 import { SwappableLdrRenderTarget } from './swappableLdrRenderTarget';
 import { BloomFilter } from './filters/bloomFilter';
+import { DofFilter } from './filters/dofFilter';
 import { FogFilter } from './filters/fogFilter';
 import { TonemappingFilter } from './filters/tonemappingFilter';
 import { FxaaFilter } from './filters/fxaaFilter';
@@ -47,6 +48,12 @@ const bloomFilter = new BloomFilter(gl, canvas.width, canvas.height, {
   threshold: 0.2,
   intensity: 0.015,
 });
+const dofFilter = new DofFilter(gl, canvas.width, canvas.height, {
+  focalDistance: 10.0,
+  focalRegion: 30.0,
+  nearTransition: 5.0,
+  farTransition: 80.0,
+});
 const fogFilter = new FogFilter(gl, {intensity: 0.005});
 const tonemappingFilter = new TonemappingFilter(gl);
 const fxaaFilter = new FxaaFilter(gl);
@@ -54,7 +61,8 @@ const copyFilter = new CopyFilter(gl);
 
 const hdrFilters = [
   fogFilter,
-  bloomFilter
+  bloomFilter,
+  dofFilter,
 ];
 const ldrFilters = [
   fxaaFilter
