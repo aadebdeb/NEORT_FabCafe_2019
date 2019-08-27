@@ -97,7 +97,7 @@ vec3 calcWallEmission(vec3 pos) {
 }
 
 vec3 calcCeilEmission(vec3 position) {
-    if (abs(position.x) < 30.0 && abs(position.z) < 30.0) {
+    if (abs(position.x) < 20.0 && abs(position.z) < 20.0) {
         return vec3(3.0);
     }
     return vec3(0.0);

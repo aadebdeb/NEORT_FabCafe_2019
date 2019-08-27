@@ -57,7 +57,7 @@ const ldrFilters = [
   fxaaFilter
 ];
 
-const wallSize = new Vector3(75.0, 50.0, 75.0);
+const wallSize = new Vector3(50.0, 50.0, 50.0);
 
 const walls = new Walls(gl, wallSize);
 const trails = new Trails(gl, {
@@ -77,7 +77,15 @@ let requestId: number | null = null;
 const loop = () => {
   stats.begin();
 
+  const elapsedSecs = timer.getElapsedSecs();
   const deltaSecs = Math.min(0.1, timer.getElapsedDeltaSecs());
+
+  camera.lookAt(new Vector3(
+    40.0 * Math.cos(0.1 * elapsedSecs),
+    -10.0 + 30.0 * Math.sin(0.1 * elapsedSecs),
+    40.0 * Math.sin(0.1 * elapsedSecs)
+  ), Vector3.zero);
+
   trails.update(gl, deltaSecs);
 
   gl.enable(gl.DEPTH_TEST);
@@ -86,12 +94,12 @@ const loop = () => {
   gl.viewport(0.0, 0.0, gBuffer.width, gBuffer.height);
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
   trails.render(gl, camera.vpMatrix);
-  walls.render(gl, camera, timer.getElapsedSecs());
+  walls.render(gl, camera, elapsedSecs);
 
   gl.disable(gl.DEPTH_TEST);
   gl.bindFramebuffer(gl.FRAMEBUFFER, hdrRenderTarget.framebuffer);
   gl.viewport(0.0, 0.0, hdrRenderTarget.width, hdrRenderTarget.height);
-  deferredRendering.apply(gl, gBuffer, camera, wallSize, timer.getElapsedSecs());
+  deferredRendering.apply(gl, gBuffer, camera, wallSize, elapsedSecs);
   hdrRenderTarget.swap();
 
   const filterOptions = {
