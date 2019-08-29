@@ -47,6 +47,10 @@ float srandom(float x) {
     return 2.0 * random(x) - 1.0;
 }
 
+float random(vec2 x){
+    return fract(sin(dot(x,vec2(12.9898, 78.233))) * 43758.5453);
+}
+
 vec3 palette(float t, vec3 a, vec3 b, vec3 c, vec3 d) {
     return a + b * cos(6.28318530718 * (t * c + d));
 }
@@ -80,12 +84,60 @@ vec3 calcWallEmission1(vec3 pos) {
     //return c * vec3(1.0) * pow(abs(sin(1.0 * pos.y)), 0.5);
 }
 
-vec3 calcWallEmission(vec3 pos) {
+vec3 calcWallFlush(int type, vec3 pos) {
+    vec2 st;
+    if (type == 2) {
+        st = vec2(-pos.z, pos.y);
+    }
+    if (type == 3) {
+        st = pos.zy;
+    }
+    if (type == 4) {
+        st = pos.xy;
+    }
+    if (type == 5) {
+        st = vec2(-pos.x, pos.y);
+    }
+
+    vec2 size = vec2(15.0);
+    for (float i = 1.0; i <= 5.0; i++) {
+        float fps = i * 2.5;
+        float timeStep = 1.0 / fps;
+        float t = floor(u_time / timeStep) * timeStep;
+        vec2 idx = floor(st / size);
+        if (random(idx + t) < 0.01) {
+            return vec3(1.2, 1.2, 1.5);
+        }
+        st *= 2.0;
+        st += 100.0;
+    }
+
+    // st += 100.0;
+    // vec2 size = vec2(0.2, 0.2);
+
+    // vec2 p = mod(st, size);
+    // vec2 idx = floor(st / size);
+
+    // float timeStep = 1.0 / 10.0;
+    // float t = floor(u_time / timeStep) * timeStep;
+
+    // if (random(idx + t) < 0.1) {
+    //     return vec3(1.1, 1.1, 1.5);
+    // }
+    return vec3(0.0);
+
+    // return vec3(p, 0.0);
+}
+
+vec3 calcWallEmission(int type, vec3 pos) {
+    // return calcWallFlush(type, pos);
     float t = mod(u_time, 20.0);
-    if (t < 10.0) {
-        return calcWallEmission1(pos);
-    } else {
+    if (t < 5.0) {
         return vec3(0.0);
+    } else if (t < 5.5) {
+        return calcWallFlush(type, pos);
+    } else {
+        return calcWallEmission1(pos);
     }
 
     // pos *= 0.01;
@@ -112,7 +164,7 @@ vec3 hitWalls(vec3 ro, vec3 rd, vec3 wallSize) {
     float tb = (-wallSize.y - ro.y) / rd.y;
     if (tb > 0.0 && tb < t) {
         t = tb;
-        wallType = 2;
+        wallType = 0;
         position = ro + t * rd;
     }
     float tt = (wallSize.y - ro.y) / rd.y;
@@ -124,33 +176,33 @@ vec3 hitWalls(vec3 ro, vec3 rd, vec3 wallSize) {
     float tl = (-wallSize.x - ro.x) / rd.x;
     if (tl > 0.0 && tl < t) {
         t = tl;
-        wallType = 0;
+        wallType = 2;
         position = ro + t * rd;
     }
     float tr = (wallSize.x - ro.x) / rd.x;
     if (tr > 0.0 && tr < t) {
         t = tr;
-        wallType = 0;
+        wallType = 3;
         position = ro + t * rd;
     }
     float tf = (-wallSize.z - ro.z) / rd.z;
     if (tf > 0.0 && tf < t) {
         t = tf;
-        wallType = 0;
+        wallType = 4;
         position = ro + t * rd;
     }
     float tn = (wallSize.z - ro.z) / rd.z;
     if (tn > 0.0 && tn < t) {
         t = tn;
-        wallType = 0;
+        wallType = 5;
         position = ro + t * rd;
     }
 
     if (t < 1e6) {
         float d = distance(ro, position);
         float decay = exp(-d * 0.01);
-        if (wallType == 0) {
-            return decay * calcWallEmission(position);
+        if (wallType == 2 || wallType == 3 || wallType == 4 || wallType == 5) {
+            return decay * calcWallEmission(wallType, position);
         } else if (wallType == 1) {
             return decay * calcCeilEmission(position);
         }
@@ -163,7 +215,7 @@ void main(void) {
 
     vec3 emission;
     if (gBuffer.type == 2 || gBuffer.type == 3 || gBuffer.type == 4 || gBuffer.type == 5) {
-        emission = calcWallEmission(gBuffer.worldPosition);
+        emission = calcWallEmission(gBuffer.type, gBuffer.worldPosition);
     } else if (gBuffer.type == 1) {
         emission = calcCeilEmission(gBuffer.worldPosition);
     } else {
