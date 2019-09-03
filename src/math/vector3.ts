@@ -109,4 +109,8 @@ export class Vector3 {
       v1.x * v2.y - v1.y * v2.x
     );
   }
+
+  static dist(v1: Vector3, v2: Vector3): number {
+    return Vector3.sub(v1, v2).mag();
+  }
 }

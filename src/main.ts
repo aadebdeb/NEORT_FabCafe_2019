@@ -1,5 +1,8 @@
 import Stats from 'stats.js';
 import { Camera } from './camera';
+import { CameraController } from './cameraControllers/cameraController';
+import { OrbitCameraController } from './cameraControllers/orbitCameraController';
+import { TrailsFollowCameraController } from './cameraControllers/trailsFollowCameraController';
 import { CanvasRenderTarget } from './canvasRenderTarget';
 import { GBuffer } from './gBuffer';
 import { DeferredLighting } from './deferredLighting';
@@ -14,6 +17,7 @@ import { CopyFilter } from './filters/copyFilter';
 import { Walls } from './walls';
 import { Trails } from './trails';
 import { Timer } from './timer';
+import { TimelineTrigger } from './timelineTrigger';
 import { Vector3 } from './math/vector3';
 
 const canvas = document.createElement('canvas');
@@ -32,8 +36,13 @@ let camera = new Camera({
   vfov: 60.0,
   near: 0.1,
   far: 300.0,
-  origin: new Vector3(70.0, -30.0, 70.0),
-  target: Vector3.zero
+});
+
+const orbitCameraController = new OrbitCameraController(camera, {
+  orbitRadius: 40.0,
+  orbitHeight: -30.0,
+  target: Vector3.zero,
+  speed: 0.1,
 });
 
 const canvasRenderTarget = new CanvasRenderTarget(canvas.width, canvas.height);
@@ -49,10 +58,10 @@ const bloomFilter = new BloomFilter(gl, canvas.width, canvas.height, {
   intensity: 0.015,
 });
 const dofFilter = new DofFilter(gl, canvas.width, canvas.height, {
-  focalDistance: 10.0,
-  focalRegion: 30.0,
-  nearTransition: 5.0,
-  farTransition: 80.0,
+  focalDistance: 5.0,
+  focalRegion: 10.0,
+  nearTransition: 10.0,
+  farTransition: 10.0,
 });
 const fogFilter = new FogFilter(gl, {intensity: 0.005});
 const tonemappingFilter = new TonemappingFilter(gl);
@@ -62,9 +71,9 @@ const copyFilter = new CopyFilter(gl);
 const hdrFilters = [
   fogFilter,
   bloomFilter,
-  dofFilter,
 ];
 const ldrFilters = [
+  dofFilter,
   fxaaFilter
 ];
 
@@ -73,13 +82,44 @@ const wallSize = new Vector3(50.0, 50.0, 50.0);
 const walls = new Walls(gl, wallSize);
 const trails = new Trails(gl, {
   trailNum: 1000,
-  jointNum: 100,
-  angleSegment: 16,
+  jointNum: 30,
+  angleSegment: 24,
   trailRadius: 0.5,
   boundaries: wallSize,
   albedo: new Vector3(0.001, 0.001, 0.001),
   reflectance: new Vector3(0.0, 0.0, 0.0),
-  refIntensity: 0.5
+  refIntensity: 0.5,
+
+  sepRadius: 5.0,
+  aliRadius: 8.0,
+  cohRadius: 8.0,
+  maxForce: 20.0,
+  maxSpeed: 20.0,
+
+});
+
+const trailsFollowCameraController = new TrailsFollowCameraController(gl, camera, trails, wallSize);
+
+let currnetCameraController: CameraController = orbitCameraController;
+const timelineTrigger = new TimelineTrigger({
+  loopSecs: 120.0
+});
+timelineTrigger.add(0.0, () => {
+  currnetCameraController = orbitCameraController;
+  camera.vfov = 90.0;
+  dofFilter.focalDistance = 10.0;
+  dofFilter.focalRegion = 10.0;
+  dofFilter.nearTransition = 5.0;
+  dofFilter.farTransition = 100.0;
+});
+timelineTrigger.add(30.0, () => {
+  currnetCameraController = trailsFollowCameraController;
+  trailsFollowCameraController.reset(gl);
+  camera.vfov = 60.0;
+  dofFilter.focalDistance = 5.0;
+  dofFilter.focalRegion = 10.0;
+  dofFilter.nearTransition = 10.0;
+  dofFilter.farTransition = 10.0;
 });
 
 gl.clearColor(0.5, 0.3, 0.2, 1.0);
@@ -91,12 +131,6 @@ const loop = () => {
   const elapsedSecs = timer.getElapsedSecs();
   const deltaSecs = Math.min(0.1, timer.getElapsedDeltaSecs());
 
-  camera.lookAt(new Vector3(
-    40.0 * Math.cos(0.1 * elapsedSecs),
-    -10.0 + 30.0 * Math.sin(0.1 * elapsedSecs),
-    40.0 * Math.sin(0.1 * elapsedSecs)
-  ), Vector3.zero);
-
   trails.update(gl, deltaSecs);
 
   gl.enable(gl.DEPTH_TEST);
@@ -106,6 +140,9 @@ const loop = () => {
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
   trails.render(gl, camera.vpMatrix);
   walls.render(gl, camera, elapsedSecs);
+
+  timelineTrigger.update(deltaSecs);
+  currnetCameraController.update(gl, deltaSecs);
 
   gl.disable(gl.DEPTH_TEST);
   gl.bindFramebuffer(gl.FRAMEBUFFER, hdrRenderTarget.framebuffer);

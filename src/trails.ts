@@ -190,6 +190,12 @@ export class Trails {
     gl.bindVertexArray(null);
   }
 
+  getPosition(gl: WebGL2RenderingContext, index: number): Vector3 {
+    const array = new Float32Array(4);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, this.trailsBuffer.readable.framebuffer);
+    gl.readPixels(index, 0, 1, 1, gl.RGBA, gl.FLOAT, array, 0);
+    return new Vector3(array[0], array[1], array[2]);
+  }
 }
 
 function createFloatRgbaTexture(gl: WebGL2RenderingContext, width: number, height: number): WebGLTexture {

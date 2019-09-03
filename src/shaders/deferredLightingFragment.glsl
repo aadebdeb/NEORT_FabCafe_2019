@@ -69,85 +69,19 @@ vec3 calcWallEmission1(vec3 pos) {
     for (float i = 1.0; i < 5.0; i++) {
         pos.y += i * 2.0 * sin(0.014 * pos.x - 0.03 * i * u_time);
         pos.y += i * 2.0 * sin(-0.009 * pos.z + 0.13 * i * u_time);
-        // pos.y += 5.0 * sin(0.1 * pos.y);
         pos.xz *= 2.0;
         pos.xy *= rotate(0.17 * srandom(i));
         pos.yz *= rotate(0.14 * srandom(i * 1.01));
     }
-    // vec3 c = mix(vec3(0.8, 0.3, 0.4), vec3(0.2, 0.7, 0.8), sin(0.14 * pos.y) * 0.5 + 0.5);
     pos.y *= 2.0;
     vec3 c = palette(
         -0.1 * u_time + 0.005 * floor(pos.y * INV_PI) + 0.1 * random(floor(pos.y * INV_PI)),
         vec3(0.5), vec3(0.5), vec3(1.0), vec3(0.0, 0.28, 0.3));
     return mix(vec3(0.0), 1.2 * c, pow(abs(sin(1.0 * pos.y)), 0.2));
-
-    //return c * vec3(1.0) * pow(abs(sin(1.0 * pos.y)), 0.5);
-}
-
-vec3 calcWallFlush(int type, vec3 pos) {
-    vec2 st;
-    if (type == 2) {
-        st = vec2(-pos.z, pos.y);
-    }
-    if (type == 3) {
-        st = pos.zy;
-    }
-    if (type == 4) {
-        st = pos.xy;
-    }
-    if (type == 5) {
-        st = vec2(-pos.x, pos.y);
-    }
-
-    vec2 size = vec2(15.0);
-    for (float i = 1.0; i <= 5.0; i++) {
-        float fps = i * 2.5;
-        float timeStep = 1.0 / fps;
-        float t = floor(u_time / timeStep) * timeStep;
-        vec2 idx = floor(st / size);
-        if (random(idx + t) < 0.01) {
-            return vec3(1.2, 1.2, 1.5);
-        }
-        st *= 2.0;
-        st += 100.0;
-    }
-
-    // st += 100.0;
-    // vec2 size = vec2(0.2, 0.2);
-
-    // vec2 p = mod(st, size);
-    // vec2 idx = floor(st / size);
-
-    // float timeStep = 1.0 / 10.0;
-    // float t = floor(u_time / timeStep) * timeStep;
-
-    // if (random(idx + t) < 0.1) {
-    //     return vec3(1.1, 1.1, 1.5);
-    // }
-    return vec3(0.0);
-
-    // return vec3(p, 0.0);
 }
 
 vec3 calcWallEmission(int type, vec3 pos) {
-    // return calcWallFlush(type, pos);
-    float t = mod(u_time, 20.0);
-    if (t < 5.0) {
-        return vec3(0.0);
-    } else if (t < 5.5) {
-        return calcWallFlush(type, pos);
-    } else {
-        return calcWallEmission1(pos);
-    }
-
-    // pos *= 0.01;
-    // for (float i = 0.0; i < 3.0; i += 1.0) {
-    //     float l = length(pos);
-    //     pos.x = 1.5 * sin(0.43 * pos.y + 0.4 * l + 0.2 * u_time);
-    //     pos.y = 2.0 * sin(0.12 * pos.z + 1.3 * l + 0.35 * u_time);
-    //     pos.z = 3.1 * sin(0.85 * pos.x + 5.2 * l + 0.15 * u_time);
-    // }
-    // return palette(length(pos), vec3(0.5), vec3(0.5), vec3(1.0), vec3(0.0, 0.05, 0.12));
+    return calcWallEmission1(pos);
 }
 
 vec3 calcCeilEmission(vec3 position) {

@@ -30,10 +30,10 @@ export class DofFilter implements Filter {
   private program: Program;
   private blurFilter: BlurFilter;
   private blurBuffer: HdrRenderTarget;
-  private focalDistance: number;
-  private focalRegiion: number;
-  private nearTransition: number;
-  private farTransition: number;
+  public focalDistance: number;
+  public focalRegion: number;
+  public nearTransition: number;
+  public farTransition: number;
   constructor(gl: WebGL2RenderingContext, width: number, height: number, {
     focalDistance = 10.0,
     focalRegion = 10.0,
@@ -41,7 +41,7 @@ export class DofFilter implements Filter {
     farTransition = 30.0,
   }: ConstructorOptions = {}) {
     this.focalDistance = focalDistance;
-    this.focalRegiion = focalRegion;
+    this.focalRegion = focalRegion;
     this.nearTransition = nearTransition;
     this.farTransition = farTransition;
     const fillViewportVertexShader = createShader(gl, fillViewportVertex, gl.VERTEX_SHADER);
@@ -62,7 +62,7 @@ export class DofFilter implements Filter {
     gl.uniform1f(this.program.getUniform(uniformNames.near), options.camera.near);
     gl.uniform1f(this.program.getUniform(uniformNames.far), options.camera.far);
     gl.uniform1f(this.program.getUniform(uniformNames.focalDistance), this.focalDistance);
-    gl.uniform1f(this.program.getUniform(uniformNames.focalRegin), this.focalRegiion);
+    gl.uniform1f(this.program.getUniform(uniformNames.focalRegin), this.focalRegion);
     gl.uniform1f(this.program.getUniform(uniformNames.nearTransition), this.nearTransition);
     gl.uniform1f(this.program.getUniform(uniformNames.farTransition), this.farTransition);
     gl.drawArrays(gl.TRIANGLES, 0, 6);

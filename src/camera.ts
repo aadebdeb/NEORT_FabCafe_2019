@@ -76,6 +76,12 @@ export class Camera {
     return this._far;
   }
 
+  set vfov(vfov: number) {
+    this._vfov = vfov;
+    this._projMatrix = Matrix4.perspective(this._aspect, this._vfov, this._near, this._far);
+    this._vpMatrix = Matrix4.mul(this._viewMatrix, this._projMatrix);
+  }
+
   set aspect(aspect: number) {
     this._aspect = aspect;
     this._projMatrix = Matrix4.perspective(this._aspect, this._vfov, this._near, this._far);
