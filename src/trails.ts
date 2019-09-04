@@ -33,6 +33,7 @@ type TrailsConstructorOptions = {
 
 const initializeUniformNames = {
   boundaries: 'u_boundaries',
+  randomSeed: 'u_randomSeed',
 };
 
 const updateUniformNames = [
@@ -145,6 +146,7 @@ export class Trails {
     gl.viewport(0.0, 0.0, this.trailsBuffer.width, this.trailsBuffer.height);
     gl.useProgram(this.initializeProgram.program);
     gl.uniform3fv(this.initializeProgram.getUniform(initializeUniformNames.boundaries), this.boundaries.toArray());
+    gl.uniform1f(this.initializeProgram.getUniform(initializeUniformNames.randomSeed), Math.random() * 100.0);
     gl.drawArrays(gl.TRIANGLES, 0, 6);
     this.trailsBuffer.swap();
   }

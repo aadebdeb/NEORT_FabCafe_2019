@@ -100,12 +100,12 @@ const trails = new Trails(gl, {
 
 const trailsFollowCameraController = new TrailsFollowCameraController(gl, camera, trails, wallSize);
 
-let currnetCameraController: CameraController = orbitCameraController;
+let currentCameraController: CameraController = orbitCameraController;
 const timelineTrigger = new TimelineTrigger({
   loopSecs: 120.0
 });
 timelineTrigger.add(0.0, () => {
-  currnetCameraController = orbitCameraController;
+  currentCameraController = orbitCameraController;
   camera.vfov = 90.0;
   dofFilter.focalDistance = 10.0;
   dofFilter.focalRegion = 10.0;
@@ -113,7 +113,7 @@ timelineTrigger.add(0.0, () => {
   dofFilter.farTransition = 100.0;
 });
 timelineTrigger.add(30.0, () => {
-  currnetCameraController = trailsFollowCameraController;
+  currentCameraController = trailsFollowCameraController;
   trailsFollowCameraController.reset(gl);
   camera.vfov = 60.0;
   dofFilter.focalDistance = 5.0;
@@ -122,7 +122,7 @@ timelineTrigger.add(30.0, () => {
   dofFilter.farTransition = 10.0;
 });
 
-gl.clearColor(0.5, 0.3, 0.2, 1.0);
+gl.clearColor(0.0, 0.0, 0.0, 1.0);
 
 let requestId: number | null = null;
 const loop = () => {
@@ -142,7 +142,7 @@ const loop = () => {
   walls.render(gl, camera, elapsedSecs);
 
   timelineTrigger.update(deltaSecs);
-  currnetCameraController.update(gl, deltaSecs);
+  currentCameraController.update(gl, deltaSecs);
 
   gl.disable(gl.DEPTH_TEST);
   gl.bindFramebuffer(gl.FRAMEBUFFER, hdrRenderTarget.framebuffer);

@@ -32,21 +32,6 @@ void setGBuffer(GBuffer gBuffer) {
     o_gBuffer3 = gBuffer.worldNormal;
 }
 
-vec3 palette(float t, vec3 a, vec3 b, vec3 c, vec3 d) {
-    return a + b * cos(6.28318530718 * (t * c + d));
-}
-
-vec3 calcPeripheralEmission(vec3 pos) {
-    pos *= 0.01;
-    for (float i = 0.0; i < 3.0; i += 1.0) {
-        float l = length(pos);
-        pos.x = 1.5 * sin(0.43 * pos.y + 0.4 * l + 0.2 * u_time);
-        pos.y = 2.0 * sin(0.12 * pos.z + 1.3 * l + 0.35 * u_time);
-        pos.z = 3.1 * sin(0.85 * pos.x + 5.2 * l + 0.15 * u_time);
-    }
-    return palette(length(pos), vec3(0.5), vec3(0.5), vec3(1.0), vec3(0.0, 0.05, 0.12));
-}
-
 vec3 calcTopEmission(vec3 position) {
     if (abs(position.x) < 30.0 && abs(position.z) < 30.0) {
         return vec3(2.0);
