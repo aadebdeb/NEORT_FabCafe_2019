@@ -7,6 +7,7 @@ type ConstructorOptions = {
   startDistance?: number,
   switchNearDistance?: number,
   switchFarDistance?: number,
+  switchSecs?: number;
 }
 
 export class TrailsFollowCameraController implements CameraController {
@@ -14,19 +15,23 @@ export class TrailsFollowCameraController implements CameraController {
   private origin = Vector3.zero;
   private target = Vector3.zero;
   private targetIndex = 0;
+  private focusingSecs = 0.0;
 
   private startDistance: number;
   private switchNearDistance: number;
   private switchFarDistance: number;
+  private switchSecs: number;
 
   constructor(gl: WebGL2RenderingContext, private camera: Camera, private trails: Trails, private boundaries: Vector3, {
     startDistance = 5.0,
     switchNearDistance = 2.0,
     switchFarDistance = 20.0,
+    switchSecs = 10.0,
   }: ConstructorOptions = {}) {
     this.startDistance = startDistance;
     this.switchNearDistance = switchNearDistance;
     this.switchFarDistance = switchFarDistance;
+    this.switchSecs = switchSecs;
     this.resetTarget(gl);
   }
 
@@ -35,18 +40,21 @@ export class TrailsFollowCameraController implements CameraController {
   }
 
   update(gl: WebGL2RenderingContext, deltaSecs: number): void {
+    this.focusingSecs += deltaSecs;
     const targetPos = this.trails.getPosition(gl, this.targetIndex);
     const dir = Vector3.sub(targetPos, this.target);
     this.target.add(dir.mul(deltaSecs));
     this.camera.lookAt(this.origin, this.target);
     const d = Vector3.dist(this.origin, this.target);
-    if (d < this.switchNearDistance || d > this.switchFarDistance ||
+    if (this.focusingSecs > this.switchSecs || d < this.switchNearDistance || d > this.switchFarDistance ||
       Math.abs(Vector3.dot(new Vector3(0.0, 1.0, 0.0), Vector3.sub(targetPos, this.origin).norm())) > 0.75) {
       this.resetTarget(gl);
     }
   }
 
   private resetTarget(gl: WebGL2RenderingContext): void {
+    this.focusingSecs = 0.0;
+
     this.targetIndex = Math.floor(Math.random() * this.trails.trailNum);
     this.target = this.trails.getPosition(gl, this.targetIndex);
 
