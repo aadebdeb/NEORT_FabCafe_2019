@@ -188,6 +188,7 @@ addEventListener('resize', () => {
   hdrRenderTarget.resize(gl, canvas.width, canvas.height);
   ldrRenderTarget.resize(gl, canvas.width, canvas.height);
   bloomFilter.resize(gl, canvas.width, canvas.height);
+  dofFilter.resize(gl, canvas.width, canvas.height);
   requestId = requestAnimationFrame(loop);
 });
 

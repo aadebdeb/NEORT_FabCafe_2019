@@ -1,8 +1,7 @@
 import { Filter, FilterOptions } from './filter';
-import { BlurFilter } from './blurFilter';
+import { BlurApplier } from './blurApplier';
 import { Program } from '../program';
 import { RenderTarget } from '../renderTarget';
-import { HdrRenderTarget } from '../hdrRenderTarget';
 import { createShader, setUniformTexture } from '../webGlUtils';
 import fillViewportVertex from '!!raw-loader!../shaders/fillViewportVertex.glsl';
 import dofFragment from '!!raw-loader!./shaders/dofFragment.glsl';
@@ -28,8 +27,7 @@ const uniformNames = {
 
 export class DofFilter implements Filter {
   private program: Program;
-  private blurFilter: BlurFilter;
-  private blurBuffer: HdrRenderTarget;
+  private blurApplier: BlurApplier;
   public focalDistance: number;
   public focalRegion: number;
   public nearTransition: number;
@@ -47,17 +45,16 @@ export class DofFilter implements Filter {
     const fillViewportVertexShader = createShader(gl, fillViewportVertex, gl.VERTEX_SHADER);
     const dofFragmentShader = createShader(gl, dofFragment, gl.FRAGMENT_SHADER);
     this.program = new Program(gl, fillViewportVertexShader, dofFragmentShader, Object.values(uniformNames));
-    this.blurFilter = new BlurFilter(gl, width * 0.5, height * 0.5);
-    this.blurBuffer = new HdrRenderTarget(gl, width, height);
+    this.blurApplier = new BlurApplier(gl, width * 0.5, height * 0.5);
   }
 
   apply(gl: WebGL2RenderingContext, src: RenderTarget, dst: RenderTarget, options: FilterOptions): void {
-    this.blurFilter.apply(gl, src, this.blurBuffer, options);
+    const blurTexture = this.blurApplier.apply(gl, src, options);
     gl.bindFramebuffer(gl.FRAMEBUFFER, dst.framebuffer);
     gl.viewport(0.0, 0.0, dst.width, dst.height);
     gl.useProgram(this.program.program);
     setUniformTexture(gl, 0, src.texture, this.program.getUniform(uniformNames.srcTexture));
-    setUniformTexture(gl, 1, this.blurBuffer.texture, this.program.getUniform(uniformNames.blurredSrcTexture));
+    setUniformTexture(gl, 1, blurTexture, this.program.getUniform(uniformNames.blurredSrcTexture));
     setUniformTexture(gl, 2, options.gBuffer.depthTexture, this.program.getUniform(uniformNames.depthTexture));
     gl.uniform1f(this.program.getUniform(uniformNames.near), options.camera.near);
     gl.uniform1f(this.program.getUniform(uniformNames.far), options.camera.far);
@@ -66,5 +63,9 @@ export class DofFilter implements Filter {
     gl.uniform1f(this.program.getUniform(uniformNames.nearTransition), this.nearTransition);
     gl.uniform1f(this.program.getUniform(uniformNames.farTransition), this.farTransition);
     gl.drawArrays(gl.TRIANGLES, 0, 6);
+  }
+
+  resize(gl: WebGL2RenderingContext, width: number, height: number): void {
+    this.blurApplier = new BlurApplier(gl, width * 0.5, height * 0.5);
   }
 }
