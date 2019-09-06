@@ -1,16 +1,15 @@
 {
-  "name": "neort_fabcafe",
+  "name": "neort_fabcafe_2019",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
   "scripts": {
     "build": "webpack",
     "watch": "webpack -w",
-    "build:prod": "webpack --config webpack.prod.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build:prod": "webpack --config webpack.prod.js"
   },
-  "author": "",
-  "license": "ISC",
+  "author": "aadebdeb",
+  "license": "CC BY-NC 3.0",
   "devDependencies": {
     "@types/stats": "^0.16.30",
     "@types/webgl2": "0.0.5",

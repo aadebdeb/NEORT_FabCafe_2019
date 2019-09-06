@@ -1,4 +1,4 @@
-import Stats from 'stats.js';
+// import Stats from 'stats.js';
 import { Camera } from './camera';
 import { CameraController } from './cameraControllers/cameraController';
 import { OrbitCameraController } from './cameraControllers/orbitCameraController';
@@ -27,8 +27,8 @@ document.body.appendChild(canvas);
 const gl = <WebGL2RenderingContext>canvas.getContext('webgl2');
 gl.getExtension('EXT_color_buffer_float');
 
-const stats = new Stats();
-document.body.appendChild(stats.dom);
+// const stats = new Stats();
+// document.body.appendChild(stats.dom);
 
 const timer = new Timer();
 let camera = new Camera({
@@ -126,7 +126,7 @@ gl.clearColor(0.0, 0.0, 0.0, 1.0);
 
 let requestId: number | null = null;
 const loop = () => {
-  stats.begin();
+  // stats.begin();
 
   const elapsedSecs = timer.getElapsedSecs();
   const deltaSecs = Math.min(0.1, timer.getElapsedDeltaSecs());
@@ -170,7 +170,7 @@ const loop = () => {
 
   copyFilter.apply(gl, ldrRenderTarget, canvasRenderTarget, filterOptions);
 
-  stats.end();
+  // stats.end();
   requestId = requestAnimationFrame(loop);
 }
 
