@@ -13,11 +13,11 @@
   "devDependencies": {
     "@types/stats": "^0.16.30",
     "@types/webgl2": "0.0.5",
-    "raw-loader": "^3.1.0",
-    "ts-loader": "^6.0.4",
+    "raw-loader": "^4.0.2",
+    "ts-loader": "^9.4.2",
     "typescript": "^3.5.3",
-    "webpack": "^4.39.2",
-    "webpack-cli": "^3.3.7"
+    "webpack": "^5.75.0",
+    "webpack-cli": "^5.0.1"
   },
   "dependencies": {
     "stats.js": "^0.17.0"
